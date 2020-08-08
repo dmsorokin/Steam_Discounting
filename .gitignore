@@ -7,3 +7,4 @@ Build/Input/
 Analysis/Input
 Analysis/Output/Paper_Cache/
 Analysis/Output/Slides*
+Analysis/Code/*.log
