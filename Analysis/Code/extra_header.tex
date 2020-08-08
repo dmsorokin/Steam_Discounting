@@ -1,0 +1,18 @@
+\renewcommand{\ttdefault}{cmr} % change the font of inline R results to normal
+\renewcommand*{\backref}[1]{}
+\renewcommand*{\backrefalt}[4]{%
+    \ifcase #1 (Not cited.)%
+    \or        [Cited on page~#2.]%
+    \else      [Cited on pages~#2.]%
+    \fi}
+\setlength{\parindent}{25pt}
+\setlength{\parskip}{0pt}
+\setlength{\skip\footins}{0.25cm} % margin before footnotes
+\definecolor{myblue}{RGB}{31, 61, 122}
+\definecolor{mypink}{RGB}{204, 0, 82}
+\newtheorem{assumption}{Assumption}[section]
+\newtheorem{proposition}{Proposition}[section]
+\newcommand{\EE}[1]{\mathbb{E}\left[#1\right]}
+\newcommand{\PP}[1]{\mathbb{P}\left(#1\right)}
+\newcommand{\CP}[2]{\mathbb{P}\left(#1 \,| \, #2 \right)}
+\newcommand{\CE}[2]{\mathbb{E}\left[#1\,|\,#2 \right]}
