@@ -35,4 +35,6 @@ knitr::opts_chunk$set(fig.pos = "h", out.extra = "", fig.align = "center")
 createLink(here("Analysis", "Input"), here("Build", "Output"), skip = T)
 
 # Create the Paper
-render(here("Analysis","Code", "Paper.Rmd"), output_dir = here("Analysis", "Output"))
+render(here("Analysis","Code", "Paper.Rmd"), 
+       output_dir = here("Analysis", "Output"),
+       output_format = "pdf_document")

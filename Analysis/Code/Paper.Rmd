@@ -22,6 +22,10 @@
        makecell: null
     includes:
        in_header: extra_header.tex
+  html_document:
+    fig_height: 2.5
+    fig_width: 6
+    number_sections: true
 
  bibliography: reviewsBib.bib
  fontsize: 12pt
