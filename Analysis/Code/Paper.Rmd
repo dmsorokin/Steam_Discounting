@@ -7,8 +7,8 @@
  date: "`r format(Sys.time(), '%B %d, %Y')`"
  classoption: pagebackref # passes pagebackref=true to hyperref before it is loaded, allowing backreferencing
  output:
-  pdf_document:
-    keep_tex: true
+  latex_document:
+    #keep_tex: true
     fig_height: 2.5
     fig_width: 6
     number_sections: true
@@ -38,6 +38,9 @@
 ---
 
 ```{r cache = F}
+knitr::opts_chunk$set(echo=F,eval=T,message=F,warning=F,comment=NA,cache=T)
+knitr::opts_chunk$set(fig.pos = "h", out.extra = "", fig.align = "center")
+
 source(here("Analysis", "Code", "StructuralFunctions.R"))
 load(here("Analysis", "Input", "info.Rda"))
 load(here("Analysis", "Input", "panel.Rda"))
@@ -420,7 +423,7 @@ With the focus now on potential transitions, the crucial question is how to defi
 To illustrate this definition, consider an example game with 19 positive reviews and 6 negative reviews at some moment in time. This game has a review score of 76\%, and the “Mostly Positive” review label. It needs 5 additional positive reviews to secure a score of 80\%, the threshold that would earn it the “Positive” label.  Similarly, 3 new negative reviews would be sufficient for the game to slide into the “Mixed” review category, as the score would become $19/(25 + 3) \times 100\%= 67\%$, which is less than the $70\%$ required for the “Mostly Positive” bin. If this game ends up having 80 positive and 20 negative reviews at the age of 200 days, its last day in the sample, then, on average, it was receiving 0.4 positive and 0.1 negative reviews per day. Thus, for a positive transition it requires $5/0.4 = 12.5$ days of only good reviews arriving at this rate. Similarly, for a negative transition it requires $3 / 0.1 = 30$ days of only bad reviews arriving at this rate. So, for this game I set its proximity to a potential positive transition to be 12.5 days, and its proximity to a potential negative transition to be 30 days. 
 
 
-```{r include = F,}
+```{r include = F, cache=F}
 band <- 7
 
 panel[, pRevRate := max(pReviews,na.rm = T)/max(age, na.rm = T), by = ID]

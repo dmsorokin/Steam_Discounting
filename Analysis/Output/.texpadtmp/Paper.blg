@@ -1,0 +1,53 @@
+This is BibTeX, Version 0.99d (TeX Live 2011)
+Capacity: max_strings=35307, hash_size=35307, hash_prime=30011
+The top-level auxiliary file: /Users/Dmitry/Steam_Discounting/Analysis/Output/.texpadtmp/Paper.aux
+The style file: plainnat.bst
+Database file #1: ../reviewsBib.bib.bib
+Warning--entry type for "videoGamesMarket" isn't style-file defined
+--line 130 of file ../reviewsBib.bib.bib
+Warning--entry type for "steamBloomberg" isn't style-file defined
+--line 152 of file ../reviewsBib.bib.bib
+Warning--empty journal in AcemogluEtAl19
+Warning--empty note in SorokinStevens20
+You've used 27 entries,
+            2773 wiz_defined-function locations,
+            810 strings with 10867 characters,
+and the built_in function-call counts, 11247 in all, are:
+= -- 1076
+> -- 545
+< -- 20
++ -- 190
+- -- 162
+* -- 895
+:= -- 1784
+add.period$ -- 120
+call.type$ -- 27
+change.case$ -- 136
+chr.to.int$ -- 26
+cite$ -- 56
+duplicate$ -- 488
+empty$ -- 929
+format.name$ -- 207
+if$ -- 2342
+int.to.chr$ -- 2
+int.to.str$ -- 1
+missing$ -- 17
+newline$ -- 182
+num.names$ -- 108
+pop$ -- 227
+preamble$ -- 1
+purify$ -- 108
+quote$ -- 0
+skip$ -- 382
+stack$ -- 0
+substring$ -- 358
+swap$ -- 38
+text.length$ -- 0
+text.prefix$ -- 0
+top$ -- 0
+type$ -- 297
+warning$ -- 2
+while$ -- 100
+width$ -- 0
+write$ -- 421
+(There were 4 warnings)

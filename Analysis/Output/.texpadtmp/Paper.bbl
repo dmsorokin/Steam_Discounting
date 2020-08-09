@@ -1,0 +1,220 @@
+\begin{thebibliography}{27}
+\providecommand{\natexlab}[1]{#1}
+\providecommand{\url}[1]{\texttt{#1}}
+\expandafter\ifx\csname urlstyle\endcsname\relax
+  \providecommand{\doi}[1]{doi: #1}\else
+  \providecommand{\doi}{doi: \begingroup \urlstyle{rm}\Url}\fi
+
+\bibitem[Acemoglu et~al.(2019)Acemoglu, Makhdoumi, Malekian, and
+  Ozdaglar]{AcemogluEtAl19}
+Daron Acemoglu, Ali Makhdoumi, Azarakhsh Malekian, and Asu Ozdaglar.
+\newblock Learning from reviews: The selection effect and the speed of
+  learning.
+\newblock June 2019.
+
+\bibitem[Anderson and Magruder(2012)]{AndersonMagruder12}
+Michael Anderson and Jeremy Magruder.
+\newblock Learning from the crowd: Regression discontinuity estimates of the
+  effects of an online review database.
+\newblock \emph{The Economic Journal}, 122\penalty0 (563):\penalty0 957--989,
+  2012.
+\newblock \doi{10.1111/j.1468-0297.2012.02512.x}.
+\newblock URL
+  \url{https://onlinelibrary.wiley.com/doi/abs/10.1111/j.1468-0297.2012.02512.x}.
+
+\bibitem[Byers et~al.(2012)Byers, Mitzenmacher, and Zervas]{ByersEtAl12}
+John~W. Byers, Michael Mitzenmacher, and Georgios Zervas.
+\newblock The groupon effect on yelp ratings.
+\newblock \emph{Proceedings of the 13th ACM Conference on Electronic Commerce -
+  EC '12}, 2012.
+\newblock \doi{10.1145/2229012.2229034}.
+\newblock URL \url{http://dx.doi.org/10.1145/2229012.2229034}.
+
+\bibitem[Cabral and Li(2015)]{CabralLi15}
+Lu\'is Cabral and Lingfang~(Ivy) Li.
+\newblock A dollar for your thoughts: Feedback-conditional rebates on ebay.
+\newblock \emph{Management Science}, 61\penalty0 (9):\penalty0 2052--2063, Sep
+  2015.
+\newblock ISSN 1526-5501.
+\newblock \doi{10.1287/mnsc.2014.2074}.
+\newblock URL \url{http://dx.doi.org/10.1287/mnsc.2014.2074}.
+
+\bibitem[Chevalier and Mayzlin(2006)]{ChevalierMayzlin06}
+Judith~A. Chevalier and Dina Mayzlin.
+\newblock The effect of word of mouth on sales: Online book reviews.
+\newblock \emph{Journal of Marketing Research}, 43\penalty0 (3):\penalty0
+  345--354, Aug 2006.
+\newblock ISSN 1547-7193.
+\newblock \doi{10.1509/jmkr.43.3.345}.
+\newblock URL \url{http://dx.doi.org/10.1509/jmkr.43.3.345}.
+
+\bibitem[Chevalier et~al.(2018)Chevalier, Dover, and Mayzlin]{ChevalierEtAl18}
+Judith~A. Chevalier, Yaniv Dover, and Dina Mayzlin.
+\newblock Channels of impact: User reviews when quality is dynamic and managers
+  respond.
+\newblock \emph{Marketing Science}, 37\penalty0 (5):\penalty0 688--709, Sep
+  2018.
+\newblock ISSN 1526-548X.
+\newblock \doi{10.1287/mksc.2018.1090}.
+\newblock URL \url{http://dx.doi.org/10.1287/mksc.2018.1090}.
+
+\bibitem[Cliff(2013)]{steamBloomberg}
+Edwards Cliff.
+\newblock Valve lines up console partners in challenge to microsoft, sony,
+  2013.
+\newblock URL
+  \url{https://web.archive.org/web/20140914033025/http://www.bloomberg.com/news/2013-11-04/valve-lines-up-console-partners-in-challenge-to-microsoft-sony.html}.
+
+\bibitem[{Entertainment Software Association}(2019)]{steamNPD}
+{Entertainment Software Association}.
+\newblock Breakdown of u.s. computer and video game sales from 2009 to 2017, by
+  delivery format, May 2019.
+\newblock URL
+  \url{https://www.statista.com/statistics/190225/digital-and-physical-game-sales-in-the-us-since-2009/}.
+
+\bibitem[Floyd et~al.(2014)Floyd, Freling, Alhoqail, Cho, and Freling]{Floyd14}
+Kristopher Floyd, Ryan Freling, Saad Alhoqail, Hyun~Young Cho, and Traci
+  Freling.
+\newblock How online product reviews affect retail sales: A meta-analysis.
+\newblock \emph{Journal of Retailing}, 90, 06 2014.
+\newblock \doi{10.1016/j.jretai.2014.04.004}.
+
+\bibitem[Gu and Ye(2014)]{GuYe14}
+Bin Gu and Qiang Ye.
+\newblock First step in social media: Measuring the influence of online
+  management responses on customer satisfaction.
+\newblock \emph{Production and Operations Management}, 23\penalty0
+  (4):\penalty0 570--582, 2014.
+\newblock \doi{10.1111/poms.12043}.
+\newblock URL \url{https://onlinelibrary.wiley.com/doi/abs/10.1111/poms.12043}.
+
+\bibitem[Hanses(2020)]{Hansen20}
+Bruce~H. Hanses.
+\newblock Econometrics.
+\newblock Manuscript, 2020.
+
+\bibitem[Li(2016)]{Li16}
+Xitong Li.
+\newblock Could deal promotion improve merchants' online reputations? the
+  moderating role of prior reviews.
+\newblock \emph{Journal of Management Information Systems}, 33\penalty0
+  (1):\penalty0 171--201, Jan 2016.
+\newblock ISSN 1557-928X.
+\newblock \doi{10.1080/07421222.2016.1172450}.
+\newblock URL \url{http://dx.doi.org/10.1080/07421222.2016.1172450}.
+
+\bibitem[Luca(2016)]{Luca16}
+Michael Luca.
+\newblock Reviews, reputation and revenue: The case of yelp.com.
+\newblock \emph{Working Paper}, 2016.
+
+\bibitem[Luca and Zervas(2016)]{LucaZervas16}
+Michael Luca and Georgios Zervas.
+\newblock Fake it till you make it: Reputation, competition, and yelp review
+  fraud.
+\newblock \emph{Management Science}, 62\penalty0 (12):\penalty0 3412--3427, Dec
+  2016.
+\newblock ISSN 1526-5501.
+\newblock \doi{10.1287/mnsc.2015.2304}.
+\newblock URL \url{http://dx.doi.org/10.1287/mnsc.2015.2304}.
+
+\bibitem[Mayzlin et~al.(2014)Mayzlin, Dover, and Chevalier]{Mayzlin14}
+Dina Mayzlin, Yaniv Dover, and Judith Chevalier.
+\newblock Promotional reviews: An empirical investigation of online review
+  manipulation.
+\newblock \emph{American Economic Review}, 104\penalty0 (8):\penalty0 2421--55,
+  August 2014.
+\newblock \doi{10.1257/aer.104.8.2421}.
+\newblock URL \url{https://www.aeaweb.org/articles?id=10.1257/aer.104.8.2421}.
+
+\bibitem[Minotti(2019)]{videoGamesMarket}
+Mike Minotti.
+\newblock Npd: U.s. game sales hit a record \$43.4 billion in 2018, 2019.
+\newblock URL
+  \url{https://venturebeat.com/2019/01/22/npd-u-s-game-sales-hit-a-record-43-4-billion-in-2018/}.
+
+\bibitem[{PC Games}(2017)]{psgames}
+{PC Games}.
+\newblock With \$4.3 billion in sales, 2017 was steam's biggest year yet.
+\newblock PSGames, 2017.
+\newblock URL \url{https://www.pcgamesn.com/steam-revenue-2017}.
+
+\bibitem[Proserpio and Zervas(2017)]{ProserpioZervas17}
+Davide Proserpio and Georgios Zervas.
+\newblock Online reputation management: Estimating the impact of management
+  responses on consumer reviews.
+\newblock \emph{Marketing Science}, 36\penalty0 (5):\penalty0 645--665, Sep
+  2017.
+\newblock ISSN 1526-548X.
+\newblock \doi{10.1287/mksc.2017.1043}.
+\newblock URL \url{http://dx.doi.org/10.1287/mksc.2017.1043}.
+
+\bibitem[Reimers and Waldfogel(2020)]{ReimersWaldfogel20}
+Imke~C Reimers and Joel Waldfogel.
+\newblock Digitization and pre-purchase information: The causal and welfare
+  impacts of reviews and crowd ratings.
+\newblock Technical report, National Bureau of Economic Research, 2020.
+
+\bibitem[Sorokin and Stevens(2020)]{SorokinStevens20}
+Dmitry Sorokin and Ryan~Louis Stevens.
+\newblock The impact of online reviews on product sales: Evidence from video
+  games.
+\newblock February 2020.
+
+\bibitem[{Steamworks Documentation}(2019)]{steamVisibility2}
+{Steamworks Documentation}.
+\newblock Positive "review bombs", May 2019.
+\newblock URL
+  \url{https://steamcommunity.com/games/593110/announcements/detail/1621770561051427036}.
+
+\bibitem[{Steamworks Documentation}(2020{\natexlab{a}})]{steamDiscounting}
+{Steamworks Documentation}.
+\newblock Discounting, 2020{\natexlab{a}}.
+\newblock URL \url{https://partner.steamgames.com/doc/marketing/discounts}.
+
+\bibitem[{Steamworks Documentation}(2020{\natexlab{b}})]{steamVisibility}
+{Steamworks Documentation}.
+\newblock Visibility on steam, July 2020{\natexlab{b}}.
+\newblock URL \url{https://partner.steamgames.com/doc/marketing/visibility}.
+
+\bibitem[Xie et~al.(2017)Xie, So, and Wang]{XieEtAl17}
+Karen~L. Xie, Kevin Kam~Fung So, and Wei Wang.
+\newblock Joint effects of management responses and online reviews on hotel
+  financial performance: A data-analytics approach.
+\newblock \emph{International Journal of Hospitality Management}, 62:\penalty0
+  101 -- 110, 2017.
+\newblock ISSN 0278-4319.
+\newblock \doi{https://doi.org/10.1016/j.ijhm.2016.12.004}.
+\newblock URL
+  \url{http://www.sciencedirect.com/science/article/pii/S0278431916305151}.
+
+\bibitem[Zegners(2017)]{Zegners17}
+Dainis Zegners.
+\newblock Building an online reputation with free content: Evidence from the
+  e-book market.
+\newblock \emph{SSRN Electronic Journal}, 2017.
+\newblock ISSN 1556-5068.
+\newblock \doi{10.2139/ssrn.2753635}.
+\newblock URL \url{http://dx.doi.org/10.2139/ssrn.2753635}.
+
+\bibitem[Zhu et~al.(2019)Zhu, Zhang, Chang, and Liang]{ZhuEtAl19}
+Dong~Hong Zhu, Zhi~Jie Zhang, Ya~Ping Chang, and Shichang Liang.
+\newblock Good discounts earn good reviews in return? effects of price
+  promotion on online restaurant reviews.
+\newblock \emph{International Journal of Hospitality Management}, 77:\penalty0
+  178 -- 186, 2019.
+\newblock ISSN 0278-4319.
+\newblock \doi{https://doi.org/10.1016/j.ijhm.2018.06.028}.
+\newblock URL
+  \url{http://www.sciencedirect.com/science/article/pii/S027843191731023X}.
+
+\bibitem[Zhu and Zhang(2010)]{ZhuZhang10}
+Feng Zhu and Xiaoquan~(Michael) Zhang.
+\newblock Impact of online consumer reviews on sales: The moderating role of
+  product and consumer characteristics.
+\newblock \emph{Journal of Marketing}, 74\penalty0 (2):\penalty0 133--148,
+  2010.
+\newblock ISSN 00222429.
+\newblock URL \url{http://www.jstor.org/stable/20619095}.
+
+\end{thebibliography}

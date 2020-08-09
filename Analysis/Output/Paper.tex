@@ -1,53 +1,46 @@
-% Options for packages loaded elsewhere
-\PassOptionsToPackage{unicode}{hyperref}
+\PassOptionsToPackage{unicode=true}{hyperref} % options for packages loaded elsewhere
 \PassOptionsToPackage{hyphens}{url}
 \PassOptionsToPackage{dvipsnames,svgnames*,x11names*}{xcolor}
 %
-\documentclass[
-  12pt,
-  pagebackref]{article}
+\documentclass[12pt,pagebackref]{article}
 \usepackage{lmodern}
 \usepackage{amssymb,amsmath}
 \usepackage{ifxetex,ifluatex}
+\usepackage{fixltx2e} % provides \textsubscript
 \ifnum 0\ifxetex 1\fi\ifluatex 1\fi=0 % if pdftex
   \usepackage[T1]{fontenc}
   \usepackage[utf8]{inputenc}
-  \usepackage{textcomp} % provide euro and other symbols
-\else % if luatex or xetex
+  \usepackage{textcomp} % provides euro and other symbols
+\else % if luatex or xelatex
   \usepackage{unicode-math}
-  \defaultfontfeatures{Scale=MatchLowercase}
-  \defaultfontfeatures[\rmfamily]{Ligatures=TeX,Scale=1}
+  \defaultfontfeatures{Ligatures=TeX,Scale=MatchLowercase}
 \fi
-% Use upquote if available, for straight quotes in verbatim environments
+% use upquote if available, for straight quotes in verbatim environments
 \IfFileExists{upquote.sty}{\usepackage{upquote}}{}
-\IfFileExists{microtype.sty}{% use microtype if available
-  \usepackage[]{microtype}
-  \UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+% use microtype if available
+\IfFileExists{microtype.sty}{%
+\usepackage[]{microtype}
+\UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
 }{}
-\makeatletter
-\@ifundefined{KOMAClassName}{% if non-KOMA class
-  \IfFileExists{parskip.sty}{%
-    \usepackage{parskip}
-  }{% else
-    \setlength{\parindent}{0pt}
-    \setlength{\parskip}{6pt plus 2pt minus 1pt}}
-}{% if KOMA class
-  \KOMAoptions{parskip=half}}
-\makeatother
+\IfFileExists{parskip.sty}{%
+\usepackage{parskip}
+}{% else
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt plus 2pt minus 1pt}
+}
 \usepackage{xcolor}
-\IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
-\IfFileExists{bookmark.sty}{\usepackage{bookmark}}{\usepackage{hyperref}}
+\usepackage{hyperref}
 \hypersetup{
-  pdfauthor={Dmitry Sorokin},
-  colorlinks=true,
-  linkcolor=mypink,
-  filecolor=myblue,
-  citecolor=mypink,
-  urlcolor=mypink,
-  pdfcreator={LaTeX via pandoc}}
-\urlstyle{same} % disable monospaced font for URLs
+            pdfauthor={Dmitry Sorokin},
+            colorlinks=true,
+            linkcolor=mypink,
+            filecolor=myblue,
+            citecolor=mypink,
+            urlcolor=mypink,
+            breaklinks=true}
+\urlstyle{same}  % don't use monospace font for urls
 \usepackage[margin=1in]{geometry}
-\usepackage{graphicx}
+\usepackage{graphicx,grffile}
 \makeatletter
 \def\maxwidth{\ifdim\Gin@nat@width>\linewidth\linewidth\else\Gin@nat@width\fi}
 \def\maxheight{\ifdim\Gin@nat@height>\textheight\textheight\else\Gin@nat@height\fi}
@@ -56,14 +49,25 @@
 % margins by default, and it is still possible to overwrite the defaults
 % using explicit options in \includegraphics[width, height, ...]{}
 \setkeys{Gin}{width=\maxwidth,height=\maxheight,keepaspectratio}
-% Set default figure placement to htbp
-\makeatletter
-\def\fps@figure{htbp}
-\makeatother
-\setlength{\emergencystretch}{3em} % prevent overfull lines
+\setlength{\emergencystretch}{3em}  % prevent overfull lines
 \providecommand{\tightlist}{%
   \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
 \setcounter{secnumdepth}{5}
+% Redefines (sub)paragraphs to behave more like sections
+\ifx\paragraph\undefined\else
+\let\oldparagraph\paragraph
+\renewcommand{\paragraph}[1]{\oldparagraph{#1}\mbox{}}
+\fi
+\ifx\subparagraph\undefined\else
+\let\oldsubparagraph\subparagraph
+\renewcommand{\subparagraph}[1]{\oldsubparagraph{#1}\mbox{}}
+\fi
+
+% set default figure placement to htbp
+\makeatletter
+\def\fps@figure{htbp}
+\makeatother
+
 \renewcommand{\ttdefault}{cmr} % change the font of inline R results to normal
 \renewcommand*{\backref}[1]{}
 \renewcommand*{\backrefalt}[4]{%
@@ -94,7 +98,7 @@
 \title{Consumer Reviews and Product Discounts:\\
 Evidence From Video Games}
 \author{Dmitry Sorokin}
-\date{\texttt{r\ format(Sys.time(),\ \textquotesingle{}\%B\ \%d,\ \%Y\textquotesingle{})}}
+\date{August 09, 2020}
 
 \begin{document}
 \maketitle
@@ -315,7 +319,7 @@ reviews.
 
 \begin{figure}[h]
  
- {\centering \includegraphics[width=0.75\linewidth,]{/Users/dmitry/Steam_Discounting/Analysis/Output/Paper_files/figure-latex/steamStore} 
+ {\centering \includegraphics[width=0.75\linewidth,]{/Users/Dmitry/Steam_Discounting/Analysis/Output/Paper_files/figure-latex/steamStore} 
  
  }
  
@@ -358,7 +362,7 @@ path of the review score.
 
 \begin{figure}[h]
 
-{\centering \includegraphics{/Users/dmitry/Steam_Discounting/Analysis/Output/Paper_files/figure-latex/example-game-1} 
+{\centering \includegraphics{/Users/Dmitry/Steam_Discounting/Analysis/Output/Paper_files/figure-latex/example-game-1} 
 
 }
 
@@ -401,12 +405,10 @@ data is questionable.
 \hypertarget{sample-description}{%
 \subsection{Sample Description}\label{sample-description}}
 
-The final sample includes \texttt{r\ info{[},\ .N{]}} games which I
-observe for
-\texttt{r\ panel{[},\ max(age),\ by\ =\ ID{]}{[},\ round(mean(V1)){]}}
-days each, on average. The main variables in the analysis are the
-aforementioned dynamic variables: player count, price, and review score
-history. An example observation from the sample is given in Figure
+The final sample includes 906 games which I observe for 393 days each,
+on average. The main variables in the analysis are the aforementioned
+dynamic variables: player count, price, and review score history. An
+example observation from the sample is given in Figure
 \ref{exampleGame}. For the majority of the games in the sample, the
 player count is the highest around the release date, and then it quickly
 fades away and oscillates around a smaller level. The player count also
@@ -416,7 +418,7 @@ Games differ a lot in their sizes, as is evident from Figure
 
 \begin{figure}[h]
 
-{\centering \includegraphics{/Users/dmitry/Steam_Discounting/Analysis/Output/Paper_files/figure-latex/sample-size-hist-1} 
+{\centering \includegraphics{/Users/Dmitry/Steam_Discounting/Analysis/Output/Paper_files/figure-latex/sample-size-hist-1} 
 
 }
 
@@ -427,41 +429,38 @@ As the goal of the paper is to understand if firms use pricing tools in
 order to improve their online reputation, a detailed overview of pricing
 and review variables is important. A representative game in the sample
 never changes its price, but instead occasionally goes on discounts,
-slowly increasing their magnitude as the game ages. There are
-\texttt{r\ panel{[}discount==F,\ diff(price),\ by\ =\ ID{]}{[}V1\textgreater{}0,\ .N{]}}
-incidents of price change in the data, compared to
-\texttt{r\ panel{[}discNew==T,\ .N{]}} discounts. Steam has a number of
-rules that regulate price promotions on its platform. A game can have a
-launch discount, but, otherwise, it has to wait for two months since the
-release before changing its price or giving a discount. A game can not
-go on discounts too frequently, and has to wait between four to six
-weeks after a price promotion to be able to run a new one. The duration
-of a custom discount is restricted to be at least one full day, and at
-most two weeks. Besides these custom discounts, that are fully managed
-by the firms, Steam has a series of curated discounts, when the platform
-invites selected titles to go on a discount. As \citet{steamDiscounting}
-explains it, ``while there aren't strict rules, as a base guideline we
-tend to focus on the top 10-20\% selling games on Steam that are
-positively reviewed and have otherwise proven to be successful''.
-Curated promotions are featured prominently on Steam's main page, and,
-arguably, lead to more visibility and sales for the participating titles
-than custom discounts, which also contribute to visibility, but
-typically do not get the front-page promotional slots. An important type
-of curated discounts are the so-called ``Seasonal Sales''--big
-platform-wide events that take place about four times a year around
-major holidays. Figure \ref{seasonalSales} shows that the biggest sales
-take place in Winter (Christmas and New Year) and Summer (July 4), but
-there are also significant discounts in the Fall (Halloween and
-Thanksgiving). Around
-\texttt{r\ \ round(panel{[}discSeason==T\ \&\ discNew\ ==\ T,\ .N{]}/panel{[}discNew==T,\ .N{]}*100)}\%
-of discounts in the sample go live during a Seasonal Sale. Thus, firms
-have significant agency when it comes to running price promotions, but
-platform regulations and platform-wide discounts are important
-determinants of firms' decision to discount.
+slowly increasing their magnitude as the game ages. There are 43
+incidents of price change in the data, compared to 6331 discounts. Steam
+has a number of rules that regulate price promotions on its platform. A
+game can have a launch discount, but, otherwise, it has to wait for two
+months since the release before changing its price or giving a discount.
+A game can not go on discounts too frequently, and has to wait between
+four to six weeks after a price promotion to be able to run a new one.
+The duration of a custom discount is restricted to be at least one full
+day, and at most two weeks. Besides these custom discounts, that are
+fully managed by the firms, Steam has a series of curated discounts,
+when the platform invites selected titles to go on a discount. As
+\citet{steamDiscounting} explains it, ``while there aren't strict rules,
+as a base guideline we tend to focus on the top 10-20\% selling games on
+Steam that are positively reviewed and have otherwise proven to be
+successful''. Curated promotions are featured prominently on Steam's
+main page, and, arguably, lead to more visibility and sales for the
+participating titles than custom discounts, which also contribute to
+visibility, but typically do not get the front-page promotional slots.
+An important type of curated discounts are the so-called ``Seasonal
+Sales''--big platform-wide events that take place about four times a
+year around major holidays. Figure \ref{seasonalSales} shows that the
+biggest sales take place in Winter (Christmas and New Year) and Summer
+(July 4), but there are also significant discounts in the Fall
+(Halloween and Thanksgiving). Around 64\% of discounts in the sample go
+live during a Seasonal Sale. Thus, firms have significant agency when it
+comes to running price promotions, but platform regulations and
+platform-wide discounts are important determinants of firms' decision to
+discount.
 
 \begin{figure}[h]
 
-{\centering \includegraphics{/Users/dmitry/Steam_Discounting/Analysis/Output/Paper_files/figure-latex/seasonal-sales-1} 
+{\centering \includegraphics{/Users/Dmitry/Steam_Discounting/Analysis/Output/Paper_files/figure-latex/seasonal-sales-1} 
 
 }
 
@@ -476,21 +475,17 @@ ratio crystallizes as more reviews flow in. Second plot in Figure
 \ref{reviewDescriptivePlots} shows that games tend to receive half of
 the reviews they have at the age of 180 days in their first month after
 the release. On average across games, the standard deviation of the
-review score (out of one hundred) is just
-\texttt{r\ round(panel{[},\ sd(score,\ na.rm=T),\ by\ =\ ID{]}{[},\ mean(V1,\ na.rm\ =\ T){]},\ 2)},
-with a split of
-\texttt{r\ round(panel{[}age\ \textless{}=\ 30,\ sd(score,\ na.rm=T),\ by\ =\ ID{]}{[},\ mean(V1,\ na.rm\ =\ T){]},\ 2)}
-in the first thirty days and
-\texttt{r\ round(panel{[}age\ \textgreater{}\ 30,\ sd(score,\ na.rm=T),\ by\ =\ ID{]}{[},\ mean(V1,\ na.rm\ =\ T){]},\ 2)}
-after that. The score is only assigned once the game reaches 10 reviews,
-and once can see that 10 reviews is enough on average keep the score
-stable. The distribution of games by bins at the age of 180 days,
-depicted in Figure \ref{reviewDescriptivePlots}, is, then,
-representative of the situation at other ages.
+review score (out of one hundred) is just 2.2, with a split of 1.83 in
+the first thirty days and 1.83 after that. The score is only assigned
+once the game reaches 10 reviews, and once can see that 10 reviews is
+enough on average keep the score stable. The distribution of games by
+bins at the age of 180 days, depicted in Figure
+\ref{reviewDescriptivePlots}, is, then, representative of the situation
+at other ages.
 
 \begin{figure}[h]
 
-{\centering \includegraphics{/Users/dmitry/Steam_Discounting/Analysis/Output/Paper_files/figure-latex/review-descriptive-plots-1} 
+{\centering \includegraphics{/Users/Dmitry/Steam_Discounting/Analysis/Output/Paper_files/figure-latex/review-descriptive-plots-1} 
 
 }
 
@@ -502,17 +497,14 @@ transitions between the review bins to make the analysis of pricing
 decisions by firms around such transitions possible. Table
 \ref{tab:transitionMatrix} describes the transitions between review bins
 in the sample. The number of unique games that have changed review
-labels in the data is
-\texttt{r\ transitions{[},\ unique(ID){]}\ \%\textgreater{}\%\ length},
-and the number of transitions is \texttt{r\ transitions{[},\ .N{]}}.
+labels in the data is 596, and the number of transitions is 1688.
 Sometimes games switch their bins briefly, and go back soon after. The
 number of transitions that led to the game spending at least 7 days in
-the new bin is
-\texttt{r\ transitions{[}(is.na(dur)\ \textbar{}\ dur\ \textgreater{}=\ 7),\ .N{]}}.
-Table \ref{mDiscountTable} describes the state of the games in the two
-weeks before their transitions. Discounting does take place before the
-transitions, games transition at very different ages, but tend to have
-only a limited number of reviews by the time their review bin changes.
+the new bin is 1225. Table \ref{mDiscountTable} describes the state of
+the games in the two weeks before their transitions. Discounting does
+take place before the transitions, games transition at very different
+ages, but tend to have only a limited number of reviews by the time
+their review bin changes.
 
 \begin{table}
 
@@ -552,7 +544,7 @@ Reviews & 1,225 & 130 & 343 & 26 & 81 \\
 
 \begin{figure}[h]
 
-{\centering \includegraphics{/Users/dmitry/Steam_Discounting/Analysis/Output/Paper_files/figure-latex/transition-discount-plot-1} 
+{\centering \includegraphics{/Users/Dmitry/Steam_Discounting/Analysis/Output/Paper_files/figure-latex/transition-discount-plot-1} 
 
 }
 
@@ -587,18 +579,11 @@ analysis controlling for review label, number of reviews, age, day of
 the week and week time effects, as well as time since the previous
 discount, confirms that the association depicted in Figure
 \ref{discountsTransitions} is robust (see Table \ref{transitionReg} in
-the Appendix). A game is approximately
-\texttt{r\ round(reg1\$coefficients{[}2{]}*14*100)} pp more likely to be
-on a discount on the day of the transition than it is two weeks prior to
-it, and it is \texttt{r\ round(-reg1\$coefficients{[}3{]}*14*100)} pp
-less likely to be on a discount two weeks following the transition.
-Given that the probability for a game to be on a discount on a random
-day is
-\texttt{r\ round(panel{[},\ mean((discount\ \textgreater{}\ 0),\ na.rm=T){]}*100)}\%
-in the sample, these effects amount to
-\texttt{r\ round(100*(reg1\$coefficients{[}2{]}/panel{[},\ mean((discount\ \textgreater{}\ 0),\ na.rm=T){]}))}\%
-and
-\texttt{r\ round(100*(-reg1\$coefficients{[}3{]}/panel{[},\ mean((discount\ \textgreater{}\ 0),\ na.rm=T){]}))}\%
+the Appendix). A game is approximately 8 pp more likely to be on a
+discount on the day of the transition than it is two weeks prior to it,
+and it is 16 pp less likely to be on a discount two weeks following the
+transition. Given that the probability for a game to be on a discount on
+a random day is 16\% in the sample, these effects amount to 3\% and 7\%
 changes in the daily probability of a discount, which is quite sizable.
 
 Of course, this finding simply shows a correlation between firms'
@@ -631,7 +616,7 @@ the analysis considers solely the firms that transitioned.
 With the focus now on potential transitions, the crucial question is how
 to define proximity to a transition. One approach would be to use the
 raw review count, and to say that a game is close to upgrading its
-review label when it needs five (ten, twenty \ldots) more positive
+review label when it needs five (ten, twenty \ldots{}) more positive
 reviews to transition. However, given the heterogeneity in the
 popularity of different games (see Figure \ref{sampleSizeHist}), five
 extra reviews could be nothing for a very popular game, and hard to
@@ -681,15 +666,15 @@ firm is at the same time close to downgrading its review bin, and might
 prefer to exercise prudence. For this reason, I define two ``treatment''
 variables of interest. Game \(i\) at date \(t\) is said to be close to a
 positive transition, \(T_{it}^+ = 1\), if its proximity to a positive
-transition is less than or equal to \texttt{r\ 2*band} days. Similarly,
-game \(i\) at date \(t\) is said to be close to a negative transition,
+transition is less than or equal to 14 days. Similarly, game \(i\) at
+date \(t\) is said to be close to a negative transition,
 \(T_{it}^- = 1\), if its proximity to a positive transition is less than
-or equal to \texttt{r\ 2*band} days. The \texttt{r\ 2*band} cutoff is
-inspired by the maximum duration of custom discounts on Steam, and the
-patterns of discounting around successful transitions, depicted in
-Figure \ref{discountsTransitions}. To estimate the effect of being close
-to a review transition on the discounting behavior, I then estimate the
-following model: \begin{equation}\label{potTransitionsReg}
+or equal to 14 days. The 14 cutoff is inspired by the maximum duration
+of custom discounts on Steam, and the patterns of discounting around
+successful transitions, depicted in Figure \ref{discountsTransitions}.
+To estimate the effect of being close to a review transition on the
+discounting behavior, I then estimate the following model:
+\begin{equation}\label{potTransitionsReg}
 disc_{it} = \beta^+ T_{it}^+ + \beta^- T_{it}^- + X_{it}\beta + f_i + \tau_t + \varepsilon_{it},
 \end{equation}
 
@@ -727,13 +712,12 @@ are presented in Table \ref{potentialTransitionsResults}. The first
 column is the full specification that uses all observations in the
 sample (except the omissions just mentioned). The second column uses a
 more stringent definition of proximity to a transition, requiring a game
-to be \texttt{r\ band}, rather than \texttt{r\ 2*band}, days away from a
-potential transition to be counted as being ``close to a transition''.
-The third column uses only transitions between ``Mixed'', ``Mostly
-Positive'', and ``Positive'' labels, as these are the transitions that
-rely on the review score only, while ``Very Positive'' and
-``Overwhelmingly Positive'' require both a certain review score, and a
-certain number of
+to be 7, rather than 14, days away from a potential transition to be
+counted as being ``close to a transition''. The third column uses only
+transitions between ``Mixed'', ``Mostly Positive'', and ``Positive''
+labels, as these are the transitions that rely on the review score only,
+while ``Very Positive'' and ``Overwhelmingly Positive'' require both a
+certain review score, and a certain number of
 reviews.\footnote{Technically, a game improving its review score from 79\% to 80\% can transition to both “Positive” and “Very Positive”, so the results in the third column bundle together these types of transitions.}.
 \citet{SorokinStevens20} exclusively uses these simple review bins in
 their regression discontinuity analysis, precisely in order to avoid the
@@ -742,22 +726,16 @@ Positive'' and ``Overwhelmingly Positive''.
 
 The results in Table \ref{potentialTransitionsResults} unequivocally
 support the hypothesis that proximity to a review bin upgrade increases
-firms' willingness to run a price promotion. Measured against the
-\texttt{r\ round(panel{[},\ mean((discount\ \textgreater{}\ 0),\ na.rm=T){]}*100)}\%
+firms' willingness to run a price promotion. Measured against the 16\%
 probability for a random game-day pair from the sample to have a
-discount\textbackslash footnote\{The corresponding number for the games
-in the treatment group is
-\texttt{r\ round(100*panel{[}ID\ \%in\%\ panel{[}pos.treatment\ ==\ 1,\ unique(ID){]},\ mean((discount\ \textgreater{}\ 0),\ na.rm\ =\ T){]})}.\},
-the effects constitute a
-\texttt{r\ round(100*(reg3\$coefficients{[}1{]}/panel{[},\ mean((discount\ \textgreater{}\ 0),\ na.rm=T){]}))}-\texttt{r\ round(100*(reg1\$coefficients{[}1{]}/panel{[},\ mean((discount\ \textgreater{}\ 0),\ na.rm=T){]}))}\%
-increase in the daily probability of a discount. The uncertainty about
-the sign and the significance of the proximity to a potential negative
-transition is resolved in favor of the prudent approach on the firms'
-side: the results suggest that firms under a risk of deteriorating their
-review label are
-\texttt{r\ -round(100*(reg3\$coefficients{[}2{]}/panel{[},\ mean((discount\ \textgreater{}\ 0),\ na.rm=T){]}))}-\texttt{r\ -round(100*(reg1\$coefficients{[}2{]}/panel{[},\ mean((discount\ \textgreater{}\ 0),\ na.rm=T){]}))}\%
-less likely to go on a discount, albeit the effect is only present in
-two out of three specifications.
+discount\footnote{The corresponding number for the games in the treatment group is 17.},
+the effects constitute a 4-6\% increase in the daily probability of a
+discount. The uncertainty about the sign and the significance of the
+proximity to a potential negative transition is resolved in favor of the
+prudent approach on the firms' side: the results suggest that firms
+under a risk of deteriorating their review label are 4-5\% less likely
+to go on a discount, albeit the effect is only present in two out of
+three specifications.
 
 \hypertarget{discussion}{%
 \subsection{Discussion}\label{discussion}}
@@ -1264,7 +1242,7 @@ $\triangleleft$
 
 \hypertarget{nlls-estimator-of-beta}{%
 \subsection{\texorpdfstring{NLLS estimator of
-\(\beta\)}{NLLS estimator of \textbackslash beta}}\label{nlls-estimator-of-beta}}
+\(\beta\)}{NLLS estimator of \textbackslash{}beta}}\label{nlls-estimator-of-beta}}
 
 In this appendix I develop the estimator for the parameters of the model
 \begin{equation}\label{nonLinearLS}
@@ -1340,6 +1318,6 @@ could be found in the code.
 
 \newpage
 
-  \bibliography{reviewsBib.bib}
+\bibliography{reviewsBib.bib}
 
 \end{document}

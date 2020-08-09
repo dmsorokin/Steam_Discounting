@@ -23,9 +23,6 @@ library(texreg)
 library(R.utils)
 library(rmarkdown)
 
-knitr::opts_chunk$set(echo=F,eval=T,message=F,warning=F,comment=NA,cache=T)
-knitr::opts_chunk$set(fig.pos = "h", out.extra = "", fig.align = "center")
-
 # If you have obtained raw data from me, you can uncomment this in order to 
 # create the sample yourself.
 
@@ -34,7 +31,16 @@ knitr::opts_chunk$set(fig.pos = "h", out.extra = "", fig.align = "center")
 # Output of Build is Input for Analysis, creating a symbolic link 
 createLink(here("Analysis", "Input"), here("Build", "Output"), skip = T)
 
+# uncomment the line below if pdf_document compilation fails, but
+# you would like to compile the latex file yourself. It will create
+# a symlink to the bibliography in the folder of Paper.tex
+createLink(here("Analysis", "Output", "reviewsBib.bib"), 
+           here("Analysis", "Code", "reviewsBib.bib"), skip = T)
+
 # Create the Paper
 render(here("Analysis","Code", "Paper.Rmd"), 
        output_dir = here("Analysis", "Output"),
-       output_format = "pdf_document")
+       output_format = "latex_document"
+       )
+
+
