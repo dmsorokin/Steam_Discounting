@@ -222,7 +222,83 @@ dataFrameToTexreg <- function(regFrame, statsFrame){
 }
 
 
+plmJuliaToTex <- function(r1, r2, juliaFrame, juliaStats){
+  
+  # First the Julia regression
+  coef.row.indices <- seq(1, nrow(juliaFrame), 3)
+  se.row.indices <- seq(2, nrow(juliaFrame), 3)
+  pval.row.indices <- seq(3, nrow(juliaFrame), 3)
+  gofnames <- c("Weekdays", "Week", "Observations", "R$^2$")
+  texregObjects <- list()
 
+  coefs <- juliaFrame[coef.row.indices, 2]
+  coefs[2] <- coefs[2]*100 # I had normalized the age var. for Julia
+  coefnames <- c("Log Price", "Age", "Age $\\le 14$", "No Score",
+                 "Negative", "M. Positive", "Positive", "Log Reviews",
+                 "Seasonal Sale")
+  sevalues <- juliaFrame[se.row.indices, 2]
+  sevalues[2] <- sevalues[2]*100
+  pvalues <- juliaFrame[pval.row.indices, 2]
+  gofvalues <- c(1., 0., juliaStats[2:3, 2])
+  
+  # Create a Texreg object with Julia results. Note: goodnesss 
+  # of fit has to be numeric
+  tr <- createTexreg(coef = coefs, 
+                     coef.names = coefnames,
+                     se = sevalues,
+                     pvalues = pvalues,
+                     gof.names = gofnames,
+                     gof = gofvalues)
+  texregObjects[1] <- list(tr)
+  
+  # Now the first plm regression 
+  coefnames <- c("Lag Players", "Log Price", "No Score",
+                 "Negative", "M. Positive", "Positive", 
+                 "Log Reviews", "Age", "Age $\\le 14$", 
+                 "Seasonal Sale")
+  coefs <- r1$coefficients[1:10]
+  
+  # calculate the s.e. and p. values
+  cov<-vcovHC(r1, method="white1")
+  test <- coeftest(r1, vcov. = cov)
+  sevalues <- test[1:10, 2]
+  pvalues <- test[1:10, 4]
+  f <- summary(r1)
+  
+  tr <- createTexreg(coef = coefs,
+                     coef.names = coefnames,
+                     se = sevalues,
+                     pvalues = pvalues,
+                     gof.names = gofnames,
+                     gof = c(1., 0., length(f$residuals),
+                             f$r.squared[1]))
+  texregObjects[2] <- list(tr)
+  
+  # The last plm regression 
+  coefnames <- c("Lag Players", "Log Price", "No Score",
+                 "Negative", "M. Positive", "Positive", 
+                 "V. Positive", "Ov. Positive", 
+                 "Log Reviews", "Age", "Age $\\le 14$")
+  coefs <- r2$coefficients[1:11]
+  
+  # calculate the s.e. and p. values
+  cov<-vcovHC(r2, method="white1")
+  test <- coeftest(r2, vcov. = cov)
+  sevalues <- test[1:11, 2]
+  pvalues <- test[1:11, 4]
+  f <- summary(r2)
+  
+  tr <- createTexreg(coef = coefs,
+                     coef.names = coefnames,
+                     se = sevalues,
+                     pvalues = pvalues,
+                     gof.names = gofnames,
+                     gof = c(1., 1., length(f$residuals),
+                             f$r.squared[1]))
+  texregObjects[3] <- list(tr)
+  
+  return(texregObjects)
+}
 
 
 

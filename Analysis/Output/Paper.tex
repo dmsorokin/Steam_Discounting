@@ -98,7 +98,7 @@
 \title{Consumer Reviews and Product Discounts:\\
 Evidence From Video Games}
 \author{Dmitry Sorokin}
-\date{August 09, 2020}
+\date{August 12, 2020}
 
 \begin{document}
 \maketitle
@@ -323,7 +323,7 @@ reviews.
  
  }
  
- \caption{\label{steamStore}Example Browsing Session on Steam}\label{fig:unnamed-chunk-3}
+ \caption{\label{steamStore}Example Browsing Session on Steam}\label{fig:unnamed-chunk-5}
  \end{figure}
 
 \hypertarget{data}{%
@@ -1139,11 +1139,113 @@ significantly contribute to complexity: the likelihood of receiving a
 poisitive review on day 100 would depend on the entire history of buyer
 arrivals prior to that date. Therefore, I proceed using \(\hat k = 1\).
 
-\hypertarget{estimation-and-results}{%
-\subsection{Estimation and Results}\label{estimation-and-results}}
+\hypertarget{results}{%
+\subsection{Results}\label{results}}
+
+In this section I present the estimates of the model parameters. I start
+with the demand parameters \((\lambda_i, \psi_i, \beta)\) in
+(\ref{arrivalReg}), and contrast these estimates with the ones delivered
+by running a regression (\ref{logReg}). Then I proceed to the parameters
+of the review process, where the focus will be on the contributions
+\((\rho_{1i}^+, \rho_{1i}^-)\) of discounts to the like and dislike
+rates.
 
 \hypertarget{demand-parameters-1}{%
 \subsubsection{Demand Parameters}\label{demand-parameters-1}}
+
+An ideal set of covariates \(x_{it}\) that I would like to use in
+estimating (\ref{arrivalReg}), given by \[
+A_{it} = \psi_i A_{it-1} + \lambda_i(1+x'_{it}\beta) + u_{it},
+\] \noindent would be price, the review label, log reviews, age (plus a
+dummy for being at most 14 days old), and a set of day of the week and
+sample week time effects. However, this proved to be computationally
+infeasible. Even though I manage to concentrate out \$2n=\$1812
+game-specific parameters \((\lambda_i, \psi_i)\) from the numerical
+optimization routine, estimation of \(\beta\) still relies on minimizing
+the sum of squared residuals in a \(\dim(\beta)\)-dimensional space. The
+routine would fail to converge to a solution within reasonable
+boundaries, so I had to eliminate some regressors.
+
+\begin{table}
+\caption{Estimates of the Demand Parameters}
+\begin{center}
+\begin{tabular}{l c c c}
+\hline
+ & NLLS & Reg & Full Reg \\
+\hline
+Log Price     & $-0.118^{***}$ & $-0.100^{***}$ & $-0.114^{***}$ \\
+              & $(0.027)$      & $(0.004)$      & $(0.004)$      \\
+Seasonal Sale & $-0.004$       & $0.063^{***}$  &                \\
+              & $(0.012)$      & $(0.003)$      &                \\
+Age           & $-0.137$       & $-0.000^{***}$ & $0.001^{***}$  \\
+              & $(0.458)$      & $(0.000)$      & $(0.000)$      \\
+Age $\le 14$  & $0.081^{**}$   & $0.147^{***}$  & $0.172^{***}$  \\
+              & $(0.041)$      & $(0.006)$      & $(0.006)$      \\
+Log Reviews   & $-0.120^{***}$ & $0.025^{***}$  & $0.024^{***}$  \\
+              & $(0.006)$      & $(0.005)$      & $(0.006)$      \\
+Lag Players   &                & $0.795^{***}$  & $0.790^{***}$  \\
+              &                & $(0.002)$      & $(0.002)$      \\
+No Score      & $0.565^{***}$  & $0.085^{***}$  & $0.090^{***}$  \\
+              & $(0.098)$      & $(0.011)$      & $(0.011)$      \\
+Negative      & $0.053$        & $-0.088^{***}$ & $-0.088^{***}$ \\
+              & $(0.047)$      & $(0.017)$      & $(0.017)$      \\
+M. Positive   & $0.064^{***}$  & $0.058^{***}$  & $0.066^{***}$  \\
+              & $(0.023)$      & $(0.007)$      & $(0.007)$      \\
+Positive      & $0.078^{**}$   & $0.099^{***}$  & $0.095^{***}$  \\
+              & $(0.031)$      & $(0.009)$      & $(0.009)$      \\
+V. Positive   &                &                & $0.118^{***}$  \\
+              &                &                & $(0.009)$      \\
+Ov. Positive  &                &                & $0.142^{***}$  \\
+              &                &                & $(0.011)$      \\
+\hline
+Weekdays      & $\checkmark$        & $\checkmark$        & $\checkmark$        \\
+Week          & $\times$        & $\times$        & $\checkmark$        \\
+Observations  & $355983$   & $355586$   & $355669$   \\
+R$^2$         & $0.930$        & $0.706$        & $0.707$        \\
+\hline
+\multicolumn{4}{l}{\scriptsize{$^{***}p<0.01$; $^{**}p<0.05$; $^{*}p<0.1$}}
+\end{tabular}
+\label{demandEstimates}
+\end{center}
+\end{table}
+
+The week effects contribute the most to the dimensionality of the
+problem, as there are 105 weeks in the sample. The reason to include
+these week effects is to account for platform-wide shocks. The biggest
+shocks shared by games on Steam are Seasonal Sales. These sales take
+place around major holidays, and, thus, blend together the increased
+platform-wide demand with the higher quantity demanded caused by the
+plethora of price promotions (depicted in Figure \ref{seasonalSales}).
+To capture these periods in a parsimonious way, I calculated the average
+daily discount in the sample, and labeled the days when the average
+discount exceeded 20\%. Figure \ref{seasonalSalesPeriods} in the
+Appendix shows that my definition tracks closely the spikes in the
+aggregate discounting behavior. I also tried using the raw value of the
+average discount in the sample, but the results remained the same.
+
+Another exclusion I have to make is that of the ``Very Positive'' and
+``Overwhelmingly Positive'' review lables. While the latter is not very
+prevalent in the sample, as is depicted in Figure
+\ref{reviewDescriptivePlots}, the former is by far the most common
+review label. In order to avoid dropping out these observations, I pool
+the ``Very Positive'' and ``Overwhelmingly Positive'' labels together
+with the ``Positive'' label. Recall that the only difference between
+``Positive'' and ``Very Positive'' is whether the game has less or more
+than 50 reviews, so this pooling averages between two similar and
+adjacent review labels.
+
+Thus, the final set of covariates that I use in estimating
+(\ref{arrivalReg}) are: price, review label, log reviews, two age
+variables, and a set of day of the week time effects, and a Seasonal
+Sale dummy. I mentioned in the Identification section that a more
+simplistic, yet more tractable, alternative to estimating the non-linear
+model (\ref{arrivalReg}) is given by equation (\ref{logReg}) \[
+\log A_{it} = \tilde\lambda_i + \tilde\psi_i \log A_{it-1} + x'_{it}\tilde \beta + u_{it}
+\] \noindent To check whether the omitted covariates could be playing a
+crucial role, I will report the results of estimaing (\ref{logReg}) both
+with the ideal set of covariates, and with the covariates used to
+estimate (\ref{arrivalReg}). The results are presented in Table
+\ref{demandEstimates}.
 
 \hypertarget{review-parameters-1}{%
 \subsubsection{Review Parameters}\label{review-parameters-1}}
@@ -1159,7 +1261,8 @@ Figures}\label{additional-tables-and-figures}}
 \subsection{Discounts Around
 Transitions}\label{discounts-around-transitions}}
 
-\begin{table}[hp] \centering    \caption{Discounts In The Days Around Transition}    \label{transitionReg}  \begin{tabular}{@{\extracolsep{5pt}}lc}  \\[-1.8ex]\hline  \hline \\[-1.8ex]   & \multicolumn{1}{c}{\textit{Dependent variable:}} \\  \cline{2-2}  \\[-1.8ex] & Discount Probability \\  \hline \\[-1.8ex]   Days to Transition & 0.006$^{***}$ \\    & (0.0005) \\    Days After Transition & $-$0.011$^{***}$ \\    & (0.0005) \\    No Score & 0.181$^{***}$ \\    & (0.026) \\    Negative & 0.004 \\    & (0.010) \\    Mostly Positive & $-$0.001 \\    & (0.005) \\    Positive & 0.032$^{***}$ \\    & (0.007) \\    Very Positive & 0.001 \\    & (0.006) \\    Ov. Positive & 0.004 \\    & (0.013) \\    Log Reviews & $-$0.011$^{***}$ \\    & (0.002) \\    Age & 0.0003$^{***}$ \\    & (0.00001) \\    Const & 0.872$^{***}$ \\    & (0.014) \\   \hline \\[-1.8ex]  Time Effects & Weekdays, Week \\ Game Effects & $\times$ \\ Polynomial($t$ W/O Discount) & $d = 2$ \\ Observations & 32,412 \\  R$^{2}$ & 0.397 \\  \hline  \hline \\[-1.8ex]  \textit{Note:}  & \multicolumn{1}{r}{$^{*}$p$<$0.1; $^{**}$p$<$0.05; $^{***}$p$<$0.01} \\  \end{tabular}  \end{table} 
+\begin{table}[hp] \centering    \caption{Discounts In The Days Around Transition}    \label{transitionReg}  \begin{tabular}{@{\extracolsep{5pt}}lc}  \\[-1.8ex]\hline  \hline \\[-1.8ex]   & \multicolumn{1}{c}{\textit{Dependent variable:}} \\  \cline{2-2}  \\[-1.8ex] & Discount Probability \\  \hline \\[-1.8ex]   Days to Transition & 0.006$^{***}$ \\    & (0.0005) \\    Days After Transition & $-$0.011$^{***}$ \\    & (0.0005) \\    No Score & 0.181$^{***}$ \\    & (0.026) \\    Negative & 0.004 \\    & (0.010) \\    Mostly Positive & $-$0.001 \\    & (0.005) \\    Positive & 0.032$^{***}$ \\    & (0.007) \\    Very Positive & 0.001 \\    & (0.006) \\    Ov. Positive & 0.004 \\    & (0.013) \\    Log Reviews & $-$0.011$^{***}$ \\    & (0.002) \\    Age & 0.0003$^{***}$ \\    & (0.00001) \\    Const & 0.872$^{***}$ \\    & (0.014) \\   \hline \\[-1.8ex]  Time Effects & Weekdays, Week \\ Game Effects & $\times$ \\ Polynomial($t$ W/O Discount) & $d = 2$ \\ Observations & 32,412 \\  R$^{2}$ & 0.397 \\  \hline  \hline \\[-1.8ex]  \textit{Note:}  & \multicolumn{1}{r}{$^{*}$p$<$0.1; $^{**}$p$<$0.05; $^{***}$p$<$0.01} \\  \end{tabular}  \end{table}
+
 \newpage
 
 \hypertarget{review-lag}{%
@@ -1170,6 +1273,21 @@ Table \ref{reviewLag} presents the results of estimating
 + reviewBin_{it} + age_{it} + young_{it} +  f_i + \tau_t + u_{it}\]
 
 \begin{table}[hp] \centering    \caption{Spikes in Reviews After a Discount}    \label{reviewLag}  \begin{tabular}{@{\extracolsep{5pt}}lc}  \\[-1.8ex]\hline  \hline \\[-1.8ex]   & \multicolumn{1}{c}{\textit{Dependent variable:}} \\  \cline{2-2}  \\[-1.8ex] & New Reviews \\  \hline \\[-1.8ex]   Discount 0 Days Ago & 1.107$^{***}$ \\    & (0.123) \\    Discount 1 Day Ago & 3.308$^{***}$ \\    & (0.277) \\    Discount 2 Days Ago & 1.397$^{***}$ \\    & (0.139) \\    Discount 3 Days Ago & 0.748$^{***}$ \\    & (0.110) \\    Discount 4 Days Ago & 0.612$^{***}$ \\    & (0.096) \\    Discount 5 Days Ago & 0.397$^{***}$ \\    & (0.104) \\    Discount 6 Days Ago & 0.036 \\    & (0.086) \\    Discount 7 Days Ago & $-$0.160$^{**}$ \\    & (0.073) \\   \hline \\[-1.8ex]  Time Effects & Weekdays, Week \\ Game Effects & $\checkmark$ \\ Observations & 355,983 \\  R$^{2}$ & 0.054 \\  \hline  \hline \\[-1.8ex]  \textit{Note:}  & \multicolumn{1}{r}{$^{*}$p$<$0.1; $^{**}$p$<$0.05; $^{***}$p$<$0.01} \\  \end{tabular}  \end{table}
+
+\newpage
+
+\hypertarget{definition-of-seasonal-sales}{%
+\subsection{Definition of Seasonal
+Sales}\label{definition-of-seasonal-sales}}
+
+\begin{figure}[h]
+
+{\centering \includegraphics{/Users/Dmitry/Steam_Discounting/Analysis/Output/Paper_files/figure-latex/seasonal-sales-periods-1} 
+
+}
+
+\caption{\label{seasonalSalesPeriods} Seasonal Sales and Discounting Activity. Shaded regions are my definition of Seasonal Sales periods. The first spike on the graph is excluded because the sample starts with just one game, and I exclude the first 2 weeks from the calculations.}\label{fig:seasonal-sales-periods}
+\end{figure}
 
 \newpage
 

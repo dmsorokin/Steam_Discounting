@@ -680,10 +680,18 @@ The analysis above is complicated by two facts. First, for each game I observe t
 
 Another problem stems from the fact that the purchase date behind a review is not available to the researcher. For that reason, the model features an additional parameter $k$, the lag between purchasing the game and leaving a review, that I assumed to be known. To estimate that parameter I leverage the fact that spikes in player activity on the first day of a sale represent new users, and study the review response during the following week in order to uncover the modal lag for leaving a review (see Table \ref{reviewLag} in the Appendix). This number turns out to be one day. Even though time to posting a review has a non-degenerate distribution, modelling it in a more nuanced way would significantly contribute to complexity: the likelihood of receiving a poisitive review on day 100 would depend on the entire history of buyer arrivals prior to that date. Therefore, I proceed using $\hat k = 1$.
 
-## Estimation and Results
+## Results
 
+In this section I present the estimates of the model parameters. I start with the demand parameters $(\lambda_i, \psi_i, \beta)$ in (\ref{arrivalReg}), and contrast these estimates with the ones delivered by running a regression (\ref{logReg}). Then I proceed to the parameters of the review process, where the focus will be on the contributions $(\rho_{1i}^+, \rho_{1i}^-)$ of discounts to the like and dislike rates.
 
 ### Demand Parameters
+
+An ideal set of covariates $x_{it}$ that I would like to use in estimating (\ref{arrivalReg}), given by
+$$
+A_{it} = \psi_i A_{it-1} + \lambda_i(1+x'_{it}\beta) + u_{it},
+$$
+\noindent would be price, the review label, log reviews, age (plus a dummy for being at most 14 days old), and a set of day of the week and sample week time effects. However, this proved to be computationally infeasible. Even though I manage to concentrate out $2n=$`r 2*info[, .N]` game-specific parameters $(\lambda_i, \psi_i)$ from the numerical optimization routine, estimation of $\beta$ still relies on minimizing the sum of squared residuals in a $\dim(\beta)$-dimensional space. The routine would fail to converge to a solution within reasonable boundaries, so I had to eliminate some regressors. 
+
 
 ```{r cache = F}
 reg.results <- fread(here("Analysis", "Temp", "juliaResults.csv")) %>% as.data.frame()
@@ -697,18 +705,75 @@ info <- merge(info, effects, by = c("ID"))
 rm(effects)
 ```
 
+```{r results='asis'}
+reg1 <- plm(log(number) ~ log(numberLag) + log(price) + noScore +
+              negative + mPositive + positive + log(reviews+1) + 
+              age + young + discSeason + day,
+                 data=panel[price!=0,],
+            model="within")
+
+reg2 <- plm(log(number) ~ log(numberLag) + log(price) + noScore + 
+              negative + mPositive + realPositive + vPositive + 
+              ovPositive + log(reviews+1) + age + young + 
+              day + week,
+                data=panel[price!=0,],
+            model="within")
+
+res <- plmJuliaToTex(reg1, reg2, reg.results[, c(1,4)],
+                     reg.results.stats[, c(1,4)])
+rm(reg.results, reg.results.stats)
+
+table <- texreg(res,
+                stars = c(0.01, 0.05, 0.1),
+                digits = 3,
+                custom.model.names = c("NLLS", "Reg", "Full Reg"),
+                reorder.coef = c(1, 9, 2, 3, 8, 10, 
+                                 4, 5, 6, 7, 11, 12),
+                caption = "Estimates of the Demand Parameters",
+                caption.above = T,
+                label = "demandEstimates")
+
+season.location <- str_locate(table, c("Weekdays"))[1]
+table.bottom <- str_sub(table, season.location, str_length(table))
+table.top <- str_sub(table, 1, season.location - 1)
+table.bottom <- str_replace_all(table.bottom, "0.000", "\\\\times")
+table.bottom <- str_replace_all(table.bottom, "1.000", "\\\\checkmark")
+table.bottom <- str_replace_all(table.bottom, ".000", "")
+table <- paste(table.top, table.bottom, sep = "")
+class(table) <- c("character", "texregTable")
+table
+```
+
+The week effects contribute the most to the dimensionality of the problem, as there are `r panel[, length(unique(week))]` weeks in the sample. The reason to include these week effects is to account for platform-wide shocks. The biggest shocks shared by games on Steam are Seasonal Sales. These sales take place around major holidays, and, thus, blend together the increased platform-wide demand with the higher quantity demanded caused by the plethora of price promotions (depicted in Figure \ref{seasonalSales}). To capture these periods in a parsimonious way, I calculated the average daily discount in the sample, and labeled the days when the average discount exceeded 20\%. Figure \ref{seasonalSalesPeriods} in the Appendix shows that my definition tracks closely the spikes in the aggregate discounting behavior. I also tried using the raw value of the average discount in the sample, but the results remained the same.
+
+Another exclusion I have to make is that of the “Very Positive” and “Overwhelmingly Positive” review lables. While the latter is not very prevalent in the sample, as is depicted in Figure \ref{reviewDescriptivePlots}, the former is by far the most common review label. In order to avoid dropping out these observations, I pool the “Very Positive” and “Overwhelmingly Positive” labels together with the “Positive” label. Recall that the only difference between “Positive” and “Very Positive” is whether the game has less or more than 50 reviews, so this pooling averages between two similar and adjacent review labels.
+
+Thus, the final set of covariates that I use in estimating (\ref{arrivalReg}) are: price, review label, log reviews, two age variables, and a set of day of the week time effects, and a Seasonal Sale dummy. I mentioned in the Identification section that a more simplistic, yet more tractable, alternative to estimating the non-linear model (\ref{arrivalReg}) is given by equation (\ref{logReg})
+$$
+\log A_{it} = \tilde\lambda_i + \tilde\psi_i \log A_{it-1} + x'_{it}\tilde \beta + u_{it}
+$$
+\noindent To check whether the omitted covariates could be playing a crucial role, I will report the results of estimaing (\ref{logReg}) both with the ideal set of covariates, and with the covariates used to estimate (\ref{arrivalReg}). The results are presented in Table \ref{demandEstimates}.
+
+
+
 ### Review Parameters
+
+
+
 
 \newpage
 \appendix
 
+
 # Additional Tables and Figures
 ## Discounts Around Transitions
+
 ```{r results = 'asis'}
 cat(star_insert_row(star.out.transitions, c("Time Effects & Weekdays, Week \\\\",
                                 "Game Effects & $\\times$ \\\\",
                                 "Polynomial($t$ W/O Discount) & $d = 2$ \\\\"), insert.after = c(34,34,34)))
 ```
+
 \newpage
 ## Review Lag
 Table \ref{reviewLag} presents the results of estimating
@@ -756,6 +821,36 @@ panel[, discNewLag6:=NULL][, discNewLag7:=NULL][, new.reviews:=NULL]
 cat(star_insert_row(star.out, c("Time Effects & Weekdays, Week \\\\",
                                 "Game Effects & $\\checkmark$ \\\\"), insert.after = c(28,28)))
 ```
+
+
+\newpage
+## Definition of Seasonal Sales
+```{r seasonal-sales-periods, fig.cap='\\label{seasonalSalesPeriods} Seasonal Sales and Discounting Activity. Shaded regions are my definition of Seasonal Sales periods. The first spike on the graph is excluded because the sample starts with just one game, and I exclude the first 2 weeks from the calculations.'}
+months1 <- c(-1, 30, 58, 89, 119, 150, 180, 211, 242, 272, 303, 333) + 1
+months2 <- c(333 + 32 + months1, 699 + 31)
+
+f<-panel[, .(disc = discSeason[1]), keyby = t][, .(t, z=c(NA, diff(disc)))]
+
+discPeriods <- data.frame(xstart = f[z==1, t], xend = c(f[z==-1, t], panel[, max(t)]))
+
+ggplot(data = panel[, .(y=sum(discount > 0)/(.N), z=avDisc[1]), by = t]) +
+  geom_rect(data = discPeriods, aes(xmin = xstart, xmax = xend, ymin = -Inf, ymax = Inf), fill = my.colors[2], alpha = 0.25) + 
+  # ggtitle() +
+  geom_line(aes(x = t, y = y),
+            color = my.colors[1],
+            size = 1) +
+  scale_x_continuous(name = NULL,
+                     breaks = c(months1, months2)[seq(1,25,3)], 
+                     labels = months(getDate(c(months1, months2))[seq(1,25,3)], 
+                                     abbreviate=T),
+                     minor_breaks = NULL) +
+  scale_y_continuous(name = "Fraction of Games",
+                     minor_breaks = NULL)  +
+  my.theme(leg.x = 0.25, leg.y = 0.9)
+
+rm(months1, months2, f, discPeriods)
+```
+
 
 \newpage
 # Mathematical Appendix

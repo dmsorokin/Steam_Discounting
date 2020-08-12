@@ -235,7 +235,6 @@ panel[, price := round(price/(price[1]/(1-discount[1])), digits = 2), by=ID]
 panel[is.na(price), price := 1.0]
 
 panel <- merge(panel, info[, .(ID, id)], by = "ID")
-panel[, lrev2 := lrev^2]
 panel <- dummy_cols(panel, select_columns = "day")
 
 regressors = c("price", "discSeason", "age", "young", 
