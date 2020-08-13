@@ -5,14 +5,18 @@
 .Ruserdata
 packrat/lib*/
 
+#--------------
 # Custom ignore
+#--------------
 **/Input
-# Ignore all log and bib files
+# Ignore all log, bib, and system .DS_Store files. 
 **/*.log
 **/*.bib
+**/.DS_Store
 **/.texpadtmp
 # Do not store Cache files
 **/Paper_Cache
+**/Paper_Files
 # Misc
 **/Slides
 Analysis/Output/*.tex
