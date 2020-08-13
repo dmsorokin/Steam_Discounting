@@ -10,9 +10,9 @@ packrat/lib*/
 #--------------
 **/Input
 # Ignore all log, bib, and system .DS_Store files. 
-**/*.log
-**/*.bib
-**/.DS_Store
+*.log
+*.bib
+.DS_Store
 **/.texpadtmp
 # Do not store Cache files
 **/Paper_Cache
