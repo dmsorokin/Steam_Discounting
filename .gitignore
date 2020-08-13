@@ -1,14 +1,20 @@
+# Added by R
 .Rproj.user
 .Rhistory
 .RData
 .Ruserdata
 packrat/lib*/
-Build/Input/
-Analysis/Code/*.log
-Analysis/Input
-Analysis/Output/Paper_Cache/
-Analysis/Output/Slides*
-Analysis/Output/*reviewsBib*
-Analysis/Code/Paper_Cache/
-Analysis/Output/.texpadtmp/
-*Paper_Cache/
+
+# Custom ignore
+**/Input
+# Ignore all log and bib files
+**/*.log
+**/*.bib
+**/.texpadtmp
+# Do not store Cache files
+**/Paper_Cache
+# Misc
+**/Slides
+Analysis/Output/*.tex
+
+
