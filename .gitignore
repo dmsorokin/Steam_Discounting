@@ -20,6 +20,6 @@ Analysis/Output/Paper_files/figure-latex/*.pdf
 !steamStore.pdf
 # Misc
 **/Slides
-Analysis/Output/*.tex
+Analysis/Output/**
 
 
