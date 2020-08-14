@@ -233,16 +233,17 @@ plmJuliaToTex <- function(r1, r2, juliaFrame, juliaStats){
 
   coefs <- juliaFrame[coef.row.indices, 2]
   # I had normalized the age and the score vars for Julia
-  coefs[3] <- coefs[3]*100 
-  coefs[5] <- coefs[5]*10 
+  coefs[3] <- coefs[3]/100 
+  coefs[5] <- coefs[5]/10 
   coefnames <- c("Log Price", "New Discount", "Age", 
                  "Age $\\le 14$", "Score", "No Score",
                  "Negative", "M. Positive", "Positive", 
                  "V. Positive", "Ov. Positive", "Log Reviews",
                  "Seasonal Sale")
   sevalues <- juliaFrame[se.row.indices, 2]
-  sevalues[3] <- sevalues[3]*100
-  sevalues[5] <- sevalues[5]*10
+  # s.e. also have to be renormalized
+  sevalues[3] <- sevalues[3]/100
+  sevalues[5] <- sevalues[5]/10
   pvalues <- juliaFrame[pval.row.indices, 2]
   gofvalues <- c(1., 0., juliaStats[2:3, 2])
   

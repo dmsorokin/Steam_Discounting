@@ -735,6 +735,10 @@ reg2 <- plm(log(number) ~ log(numberLag) + log(price) +
                 data=panel[price!=0,],
             model="within")
 
+# plmJuliaToTex contains a lot of manual coding, because of the 
+# difference in variable names between Julia and R codes. If you 
+# change the Julia results, or reg1/reg2 regs, you would have to
+# change plmJuliaToTex for this chunk to work properly
 res <- plmJuliaToTex(reg1, reg2, reg.results[, c(1,4)],
                      reg.results.stats[, c(1,4)])
 rm(reg.results, reg.results.stats)
