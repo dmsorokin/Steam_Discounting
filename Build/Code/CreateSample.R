@@ -230,19 +230,20 @@ panel[noScore==T, score := 0]
 panel[noScore==T, reviews := 0]
 panel[, lrev := log(reviews+1)]
 panel[, price := round(price/(price[1]/(1-discount[1])), digits = 2), by=ID]
-
+panel[, numberLag := numberLag/(max(number)), by = ID]
+panel[, number := number/(max(number)), by = ID]
 # price for the game that has a 100% discount in the data
 panel[is.na(price), price := 1.0]
 
 panel <- merge(panel, info[, .(ID, id)], by = "ID")
 panel <- dummy_cols(panel, select_columns = "day")
 
-regressors = c("price", "discSeason", "age", "young", 
+regressors = c("price", "discSeason", "discNewLag", "age", "young", 
                "noScore", "negative", "mPositive", "positive", 
+               "realPositive", "vPositive", "ovPositive", "score",
                "day_Tue", "day_Wed", "day_Thu", "day_Fri", "day_Sat",
                "day_Sun", "lrev")
 
-# for this exercise keep only the stuff that is needed
 panel <- panel[, c("id","t","number","numberLag",regressors), with=F]
 setkey(panel, "id", "t")
 fwrite(panel, file=here("Build", "Output", "juliaData.csv"))

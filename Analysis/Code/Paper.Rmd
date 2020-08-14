@@ -383,9 +383,13 @@ ggplot(data=transPanel[, .(x=tToTransit, y=100*(discount>0),
 ```
 
 ```{r, include=F}
+panel[noScore==T, score := 0]
+panel[noScore==T, reviews := 0]
 reg1 <- lm(I(discount>0) ~  tToTransitNeg + tToTransitPos + 
-              + noScore + negative + mPositive + realPositive + vPositive + ovPositive +
-              log(reviews) + age + poly(tWODisc, degree = 2) + day + week, data = transPanel)
+             noScore + negative + mPositive + realPositive +
+             vPositive + ovPositive + score +
+             log(reviews+1) + age + poly(tWODisc, degree = 2) + 
+             day + week, data = transPanel)
 cov<-vcovHC(reg1)
 se1 <- sqrt(diag(cov))
 
@@ -399,7 +403,7 @@ star.out.transitions <- stargazer(reg1,
           dep.var.labels = c("Discount Probability"),
           covariate.labels = c("Days to Transition", "Days After Transition", "No Score", 
                                "Negative", "Mostly Positive", "Positive", "Very Positive",
-                               "Ov. Positive", "Log Reviews", "Age", "Const"),
+                               "Ov. Positive", "Score", "Log Reviews", "Age", "Const"),
           model.numbers = F,
           omit = c("day", "week", "tWODisc"),
           omit.stat=c("f","adj.rsq","ser"),
@@ -452,8 +456,9 @@ panel[, pos.treatment := (needPos <= 2*band)]
 panel[, neg.treatment := (needNeg <= 2*band)]
 
 reg3 <- plm(I(discount>0) ~ pos.treatment + neg.treatment +
-               log(needPosDays) + log(needNegDays) + poly(tWODisc, degree = 2) + log(reviews+1) +
-               mPositive + age + young + day + week,
+              log(needPosDays) + log(needNegDays) + 
+              poly(tWODisc, degree = 2) + log(reviews+1) + score + 
+              mPositive + age + young + day + week,
                  data=panel[],
             model="within")
 cov<-vcovHC(reg3, method="white1")
@@ -489,7 +494,7 @@ panel[, pos.treatment := (needPos <= 2*band)]
 panel[, neg.treatment := (needNeg <= 2*band)]
 
 reg1 <- plm(I(discount>0) ~ pos.treatment + neg.treatment +
-               log(needPosDays) + log(needNegDays) + poly(tWODisc, degree = 2) + log(reviews+1) +
+               log(needPosDays) + log(needNegDays) + poly(tWODisc, degree = 2) + log(reviews+1) + score + 
                mPositive + realPositive + vPositive + age + young + day + week,
                  data=panel[],
             model="within")
@@ -500,7 +505,7 @@ panel[, pos.treatment := (needPos <= band)]
 panel[, neg.treatment := (needNeg <= band)]
 
 reg2 <- plm(I(discount>0) ~ pos.treatment + neg.treatment +
-               log(needPosDays) + log(needNegDays) + poly(tWODisc, degree = 2) + log(reviews+1) +
+               log(needPosDays) + log(needNegDays) + poly(tWODisc, degree = 2) + log(reviews+1) + score + 
                mPositive + realPositive + vPositive + age + young + day + week,
                  data=panel[],
             model="within")
@@ -517,8 +522,8 @@ star.out <- stargazer(reg1, reg2, reg3,
              column.labels = c("Full", "1 W. to Tr.", "Simple Tr."),
              covariate.labels = c("Close to Pos. Transition", "Close to Neg. Transition",
                                   "Log Days to Pos. Tr.", "Log Days to Neg Tr.",
-                                  "Log Reviews", "Mostly Positive", "Positive",
-                                  "Very Positive", "Age", "Age $\\le 14$"),
+                                  "Mostly Positive", "Positive", "Very Positive",
+                                  "Score", "Log Reviews", "Age", "Age $\\le 14$"),
              model.numbers = F,
              omit = c("day", "week", "tWODisc"),
              omit.stat=c("f","adj.rsq","ser"),
@@ -538,7 +543,7 @@ cat(star_insert_row(star.out,
                     c("Time Effects: Weekdays, Week &  $\\checkmark$ &  $\\checkmark$ & $\\checkmark$ \\\\",
                       "Game Effects & $\\checkmark$ & $\\checkmark$ & $\\checkmark$ \\\\",
                       "Poly($t$ W/O Discount, $d=2$) & $\\checkmark$ & $\\checkmark$ & $\\checkmark$ \\\\"),
-                    insert.after = c(33,33,33)))
+                    insert.after = c(35,35,35)))
 ```
 
 
@@ -700,7 +705,7 @@ Thus, the final set of covariates that I use in estimating (\ref{arrivalReg}) ar
 $$
 \log A_{it} = \tilde\lambda_i + \tilde\psi_i \log A_{it-1} + x'_{it}\tilde \beta + u_{it}
 $$
-\noindent To check whether the omitted covariates could be playing a crucial role, I will report the results of estimaing (\ref{logReg}) both with the ideal set of covariates, and with the covariates used to estimate (\ref{arrivalReg}). The results are presented in Table \ref{demandEstimates}.
+\noindent To check whether the omitted covariates could be playing a crucial role, I report the results of estimaing (\ref{logReg}) both with the ideal set of covariates, and with the covariates used to estimate (\ref{arrivalReg}). The results are presented in Table \ref{demandEstimates}.
 
 ```{r cache = F}
 reg.results <- fread(here("Analysis", "Temp", "juliaResults.csv")) %>% as.data.frame()
@@ -715,16 +720,18 @@ rm(effects)
 ```
 
 ```{r results='asis'}
-reg1 <- plm(log(number) ~ log(numberLag) + log(price) + noScore +
-              negative + mPositive + positive + log(reviews+1) + 
-              age + young + discSeason + day,
-                 data=panel[price!=0,],
+reg1 <- plm(log(number) ~ log(numberLag) + log(price) +
+            discNewLag + discSeason + noScore + negative + 
+            mPositive +
+            realPositive + vPositive + ovPositive +
+            log(reviews+1) + score + age + young + day,
+                data=panel[price!=0,],
             model="within")
 
-reg2 <- plm(log(number) ~ log(numberLag) + log(price) + noScore + 
-              negative + mPositive + realPositive + vPositive + 
-              ovPositive + log(reviews+1) + age + young + 
-              day + week,
+reg2 <- plm(log(number) ~ log(numberLag) + log(price) +
+              discNewLag + noScore + negative + mPositive +
+              realPositive + vPositive + ovPositive +
+              log(reviews+1) + score + age + young + day + week,
                 data=panel[price!=0,],
             model="within")
 
@@ -735,9 +742,9 @@ rm(reg.results, reg.results.stats)
 table <- texreg(res,
                 stars = c(0.01, 0.05, 0.1),
                 digits = 3,
-                custom.model.names = c("NLLS", "Reg", "Full Reg"),
-                reorder.coef = c(1, 9, 2, 3, 8, 10, 
-                                 4, 5, 6, 7, 11, 12),
+                custom.model.names = c("NLLS", "Reg", "Ideal Reg"),
+                #reorder.coef = c(1, 9, 2, 3, 8, 10, 
+                #                 4, 5, 6, 7, 11, 12),
                 caption = "Estimates of the Demand Parameters",
                 caption.above = T,
                 label = "demandEstimates")
@@ -753,6 +760,9 @@ class(table) <- c("character", "texregTable")
 table
 ```
 
+Column “NLLS” in table \ref{demandEstimates} presents the estimates of the demand parameters in (\ref{arrivalReg}), and column “Reg” presents the results of estimating the log-regression (\ref{logReg}) with the same set of covariates; finally, column “Full Reg” reports the results of estimating the log-regression with the ideal set of covariates. The parameters that are of main interest are the price elasticity and the review labels semi-elasticities. 
+
+The price coefficient estimates display a strong unanimity across all specifications. It is, perhaps, surprising to find the price elasticity of demand to be as low as `r -round(reg1$coefficients[2], 1)`. It is tempting to 
 
 
 ### Review Parameters
@@ -774,7 +784,7 @@ table
 ```{r results = 'asis'}
 cat(star_insert_row(star.out.transitions, c("Time Effects & Weekdays, Week \\\\",
                                 "Game Effects & $\\times$ \\\\",
-                                "Polynomial($t$ W/O Discount) & $d = 2$ \\\\"), insert.after = c(34,34,34)))
+                                "Polynomial($t$ W/O Discount) & $d = 2$ \\\\"), insert.after = c(36,36,36)))
 ```
 
 \newpage
@@ -796,7 +806,7 @@ panel[, discNewLag7 := shift(discNewLag6), by = ID][is.na(discNewLag7), discNewL
 # error that I can not debug
 reg1 <- plm(new.reviews ~ discNew + discNewLag + discNewLag2 + discNewLag3 + discNewLag4 +
                           discNewLag5 + discNewLag6 + discNewLag7 + 
-                          negative + mPositive + positive + age + young + day + week,
+                          negative + mPositive + realPositive + vPositive + ovPositive + score + age + young + day + week,
                           data = panel, model = "within")
 cov<-vcovHC(reg1, method="white1")
 se1 <- sqrt(diag(cov))
@@ -813,7 +823,8 @@ star.out <- stargazer(reg1,
                                   "Discount 4 Days Ago", "Discount 5 Days Ago", 
                                   "Discount 6 Days Ago", "Discount 7 Days Ago"),
              model.numbers = F,
-             omit = c("day","week","negative","mPositive","positive","age", "young"),
+             omit = c("day","week","negative","mPositive","realPositive",
+                      "vPositive", "ovPositive", "score", "age", "young"),
              omit.stat=c("f","adj.rsq","ser"),
              no.space=T)
 panel[, discNewLag2:=NULL][, discNewLag3:=NULL][, discNewLag4:=NULL][, discNewLag5:=NULL]

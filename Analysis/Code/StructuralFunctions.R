@@ -232,12 +232,17 @@ plmJuliaToTex <- function(r1, r2, juliaFrame, juliaStats){
   texregObjects <- list()
 
   coefs <- juliaFrame[coef.row.indices, 2]
-  coefs[2] <- coefs[2]*100 # I had normalized the age var. for Julia
-  coefnames <- c("Log Price", "Age", "Age $\\le 14$", "No Score",
-                 "Negative", "M. Positive", "Positive", "Log Reviews",
+  # I had normalized the age and the score vars for Julia
+  coefs[3] <- coefs[3]*100 
+  coefs[5] <- coefs[5]*10 
+  coefnames <- c("Log Price", "New Discount", "Age", 
+                 "Age $\\le 14$", "Score", "No Score",
+                 "Negative", "M. Positive", "Positive", 
+                 "V. Positive", "Ov. Positive", "Log Reviews",
                  "Seasonal Sale")
   sevalues <- juliaFrame[se.row.indices, 2]
-  sevalues[2] <- sevalues[2]*100
+  sevalues[3] <- sevalues[3]*100
+  sevalues[5] <- sevalues[5]*10
   pvalues <- juliaFrame[pval.row.indices, 2]
   gofvalues <- c(1., 0., juliaStats[2:3, 2])
   
@@ -251,18 +256,20 @@ plmJuliaToTex <- function(r1, r2, juliaFrame, juliaStats){
                      gof = gofvalues)
   texregObjects[1] <- list(tr)
   
-  # Now the first plm regression 
-  coefnames <- c("Lag Players", "Log Price", "No Score",
-                 "Negative", "M. Positive", "Positive", 
-                 "Log Reviews", "Age", "Age $\\le 14$", 
-                 "Seasonal Sale")
-  coefs <- r1$coefficients[1:10]
+  
+  # The  first plm regression 
+  coefnames <- c("Lag Players", "Log Price", "New Discount",
+                 "Seasonal Sale",
+                 "No Score", "Negative", "M. Positive", "Positive", 
+                 "V. Positive", "Ov. Positive", "Log Reviews", 
+                 "Score", "Age", "Age $\\le 14$")
+  coefs <- r1$coefficients[1:14]
   
   # calculate the s.e. and p. values
   cov<-vcovHC(r1, method="white1")
   test <- coeftest(r1, vcov. = cov)
-  sevalues <- test[1:10, 2]
-  pvalues <- test[1:10, 4]
+  sevalues <- test[1:14, 2]
+  pvalues <- test[1:14, 4]
   f <- summary(r1)
   
   tr <- createTexreg(coef = coefs,
@@ -270,22 +277,23 @@ plmJuliaToTex <- function(r1, r2, juliaFrame, juliaStats){
                      se = sevalues,
                      pvalues = pvalues,
                      gof.names = gofnames,
-                     gof = c(1., 0., length(f$residuals),
+                     gof = c(1., 1., length(f$residuals),
                              f$r.squared[1]))
   texregObjects[2] <- list(tr)
   
-  # The last plm regression 
-  coefnames <- c("Lag Players", "Log Price", "No Score",
-                 "Negative", "M. Positive", "Positive", 
-                 "V. Positive", "Ov. Positive", 
-                 "Log Reviews", "Age", "Age $\\le 14$")
-  coefs <- r2$coefficients[1:11]
+  
+  # The plm regression 
+  coefnames <- c("Lag Players", "Log Price", "New Discount",
+                 "No Score", "Negative", "M. Positive", "Positive", 
+                 "V. Positive", "Ov. Positive", "Log Reviews", 
+                 "Score", "Age", "Age $\\le 14$")
+  coefs <- r2$coefficients[1:13]
   
   # calculate the s.e. and p. values
   cov<-vcovHC(r2, method="white1")
   test <- coeftest(r2, vcov. = cov)
-  sevalues <- test[1:11, 2]
-  pvalues <- test[1:11, 4]
+  sevalues <- test[1:13, 2]
+  pvalues <- test[1:13, 4]
   f <- summary(r2)
   
   tr <- createTexreg(coef = coefs,
