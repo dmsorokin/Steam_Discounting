@@ -7,8 +7,8 @@
  date: "`r format(Sys.time(), '%B %d, %Y')`"
  classoption: pagebackref # passes pagebackref=true to hyperref before it is loaded, allowing backreferencing
  output:
-  latex_document:
-    #keep_tex: true
+  pdf_document:
+    keep_tex: true
     fig_height: 2.5
     fig_width: 6
     number_sections: true
@@ -16,7 +16,7 @@
     extra_dependencies:
        footmisc: ["bottom"] # footnote management
        setspace: ["doublespacing"] # spacing of the paper
-       caption: ["tableposition=top"]
+       caption:
        dsfont: null # indicator function 1
        booktabs: null
        makecell: null
@@ -37,9 +37,32 @@
  urlcolor: mypink
 ---
 
-```{r cache = F}
+```{r cache = F, include = F}
+# Load libraries 
+library(here)
+library(devtools) # for installing packages through GitHub, needed for starpolishr
+library(data.table)
+library(stringr)
+library(stringi) # that is wasteful, but it happened
+library(anytime)
+library(dplyr)
+library(magrittr)
+library(fastDummies)
+library(kableExtra)
+library(ggplot2)
+library(ggthemes)
+library(ggridges)
+library(ggpubr)
+library(sandwich)
+library(lmtest)
+library(plm)
+library(stargazer)
+library(starpolishr) # install by devtools::install_github("ChandlerLutz/starpolishr")
+library(texreg)
+library(R.utils)
+
 knitr::opts_chunk$set(echo=F,eval=T,message=F,warning=F,comment=NA,cache=T)
-knitr::opts_chunk$set(fig.pos = "h", out.extra = "", fig.align = "center")
+knitr::opts_chunk$set(fig.pos = "hp", out.extra = "", fig.align = "center")
 
 source(here("Analysis", "Code", "StructuralFunctions.R"))
 load(here("Analysis", "Input", "info.Rda"))
@@ -416,7 +439,7 @@ star.out.transitions <- stargazer(reg1,
 In this section I present evidence that firms use discounting to manage their online reputation, in particular, by running price promotions when they are close to improving their review label. For now, let us resort to a very simplistic story of why a firm would be interested in doing that. Assume that discounts increase the inflow customers, and that more customers means more reviews. Also, take for granted, for now, that better review labels improve sales. Then, if a firm is one positive review away from upgrading its review label, it might be tempted to speed things up by giving a discount. Similarly, a product that is close to sliding into a worse review bin, could be tempted to run a price promotion, in order to avoid a slump in its reviews. I will address this story in more detail in the discussion part of this section, but for now I turn attention to simply establishing that this sort of behavior indeed takes place in the sample.
 
 
-The departing point of the analysis is Figure \ref{discountsTransitions}, which shows that transitions between review labels are very often preceded by discounts. The graph shows that two weeks prior to a transition only 15% of games were on a discount, a number close to the sample average, but that this number more than doubles to around 35% one day before the label change. Regression analysis controlling for review label, number of reviews, age, day of the week and week time effects, as well as time since the previous discount, confirms that the association depicted in Figure \ref{discountsTransitions} is robust (see Table \ref{transitionReg} in the Appendix). A game is approximately `r round(reg1$coefficients[2]*14*100)` pp more likely to be on a discount on the day of the transition than it is two weeks prior to it, and it is `r round(-reg1$coefficients[3]*14*100)` pp less likely to be on a discount two weeks following the transition. Given that the probability for a game to be on a discount on a random day is `r round(panel[, mean((discount > 0), na.rm=T)]*100)`% in the sample, these effects amount to `r round(100*(reg1$coefficients[2]/panel[, mean((discount > 0), na.rm=T)]))`% and `r round(100*(-reg1$coefficients[3]/panel[, mean((discount > 0), na.rm=T)]))`% changes in the daily probability of a discount, which is quite sizable. 
+The departing point of the analysis is Figure \ref{discountsTransitions}, which shows that transitions between review labels are very often preceded by discounts. The graph shows that two weeks prior to a transition only 15% of games were on a discount, a number close to the sample average, but that this number more than doubles to around 35% one day before the label change. Regression analysis controlling for review label, number of reviews, age, day of the week and week time effects, as well as time since the previous discount, confirms that the association depicted in Figure \ref{discountsTransitions} is robust (see Table \ref{transitionReg} in the Appendix). A game is approximately `r round(reg1$coefficients[2]*14*100)` pp more likely to be on a discount on the day of the transition than it is two weeks prior to it, and it is `r round(-reg1$coefficients[3]*14*100)` pp less likely to be on a discount two weeks following the transition. Given that the probability for a game to be on a discount on a random day is `r round(panel[, mean((discount > 0), na.rm=T)]*100)`% in the sample, these effects amount to `r round(100*(reg1$coefficients[2]/panel[, mean((discount > 0), na.rm=T)]))`% and `r round(100*(-reg1$coefficients[3]/panel[, mean((discount > 0), na.rm=T)]))`% changes in the daily probability of a discount, which is quite sizable.
 
 Of course, this finding simply shows a correlation between firms' discounting behavior and review transitions. The same pattern could emerge if the causality between the two variables is reversed, i.e. the discounts cause transitions, and not the other way around. Imagine a hypothetical world in which games are only bought on discounts. In this world any action in the data would be preceded (and, to some extent, caused) by a discount. In other words, firms could be giving discounts for reasons unrelated to reviews, but transitions sometimes would follow as a result. As a matter of fact, suppose that the story I am after is true, and that firms try to achieve transitions  via price promotions. In that case, discounts *have* to be able to aid transitioning, making the reverse causality inherent in this setting. The analysis behind Figure \ref{discountsTransitions} remains imperfect for yet another reason. A discount given when a firm is close to a positive transition is not guaranteed to lead to a transition. Similarly, a firm trying to avoid a negative transition by giving a discount might succeed. In both cases, the behavior that we are interested in goes undetected if one only studies transitions that took place in the data.
 
@@ -424,7 +447,7 @@ The solution to both problems that I suggest is to study *potential* transitiona
 
 With the focus now on potential transitions, the crucial question is how to define proximity to a transition. One approach would be to use the raw review count, and to say that a game is close to upgrading its review label when it needs five (ten, twenty ...) more positive reviews to transition. However, given the heterogeneity in the popularity of different games (see Figure \ref{sampleSizeHist}), five extra reviews could be nothing for a very popular game, and hard to acquire for a small game. For this reason I use a different approach, that measures proximity by the expected number of days that a game has to wait to accumulate the reviews necessary for a transition. In particular, for every game-date pair I first measure how many positive reviews that game needs at the moment to upgrade its review bin, and how many negative reviews that game needs to degrade its review bin. In the next step, for each game I calculate the average speed of review arrivals, by simply dividing the number of positive (negative) reviews as of the last day in the sample by the age of the game on that day. Knowing the speed of positive and negative review arrivals, and the  number of reviews necessary for a transition, I then define the proximity to a positive (negative) transition to be the expected number of days needed for the game to accumulate the necessary number of positive (negative) reviews, assuming that it does not receive any negative (positive) reviews during that time.
 
-To illustrate this definition, consider an example game with 19 positive reviews and 6 negative reviews at some moment in time. This game has a review score of 76\%, and the “Mostly Positive” review label. It needs 5 additional positive reviews to secure a score of 80\%, the threshold that would earn it the “Positive” label.  Similarly, 3 new negative reviews would be sufficient for the game to slide into the “Mixed” review category, as the score would become $19/(25 + 3) \times 100\%= 67\%$, which is less than the $70\%$ required for the “Mostly Positive” bin. If this game ends up having 80 positive and 20 negative reviews at the age of 200 days, its last day in the sample, then, on average, it was receiving 0.4 positive and 0.1 negative reviews per day. Thus, for a positive transition it requires $5/0.4 = 12.5$ days of only good reviews arriving at this rate. Similarly, for a negative transition it requires $3 / 0.1 = 30$ days of only bad reviews arriving at this rate. So, for this game I set its proximity to a potential positive transition to be 12.5 days, and its proximity to a potential negative transition to be 30 days. 
+To illustrate this definition, consider an example game with 19 positive reviews and 6 negative reviews at some moment in time. This game has a review score of 76\%, and the “Mostly Positive” review label. It needs 5 additional positive reviews to secure a score of 80\%, the threshold that would earn it the “Positive” label.  Similarly, 3 new negative reviews would be sufficient for the game to slide into the “Mixed” review category, as the score would become $19/(25 + 3) \times 100\%= 67\%$, which is less than the $70\%$ required for the “Mostly Positive” bin. If this game ends up having 80 positive and 20 negative reviews at the age of 200 days, its last day in the sample, then, on average, it was receiving 0.4 positive and 0.1 negative reviews per day. Thus, for a positive transition it requires $5/0.4 = 12.5$ days of only good reviews arriving at this rate. Similarly, for a negative transition it requires $3 / 0.1 = 30$ days of only bad reviews arriving at this rate. So, for this game I set its proximity to a potential positive transition to be 12.5 days, and its proximity to a potential negative transition to be 30 days.
 
 
 ```{r include = F, cache=F}
@@ -456,8 +479,8 @@ panel[, pos.treatment := (needPos <= 2*band)]
 panel[, neg.treatment := (needNeg <= 2*band)]
 
 reg3 <- plm(I(discount>0) ~ pos.treatment + neg.treatment +
-              log(needPosDays) + log(needNegDays) + 
-              poly(tWODisc, degree = 2) + log(reviews+1) + score + 
+              log(needPosDays) + log(needNegDays) +
+              poly(tWODisc, degree = 2) + log(reviews+1) + score +
               mPositive + age + young + day + week,
                  data=panel[],
             model="within")
@@ -494,7 +517,7 @@ panel[, pos.treatment := (needPos <= 2*band)]
 panel[, neg.treatment := (needNeg <= 2*band)]
 
 reg1 <- plm(I(discount>0) ~ pos.treatment + neg.treatment +
-               log(needPosDays) + log(needNegDays) + poly(tWODisc, degree = 2) + log(reviews+1) + score + 
+               log(needPosDays) + log(needNegDays) + poly(tWODisc, degree = 2) + log(reviews+1) + score +
                mPositive + realPositive + vPositive + age + young + day + week,
                  data=panel[],
             model="within")
@@ -505,7 +528,7 @@ panel[, pos.treatment := (needPos <= band)]
 panel[, neg.treatment := (needNeg <= band)]
 
 reg2 <- plm(I(discount>0) ~ pos.treatment + neg.treatment +
-               log(needPosDays) + log(needNegDays) + poly(tWODisc, degree = 2) + log(reviews+1) + score + 
+               log(needPosDays) + log(needNegDays) + poly(tWODisc, degree = 2) + log(reviews+1) + score +
                mPositive + realPositive + vPositive + age + young + day + week,
                  data=panel[],
             model="within")
@@ -554,7 +577,7 @@ The results in Table \ref{potentialTransitionsResults} unequivocally support the
 
 ## Discussion
 
-It is not unreasonable to say that model \ref{potTransitionsReg} is able to identify the causal effect of the proximity to a review transition on discounting behavior. As the sample was selected to include only products with the most stable quality and the lowest number of game updates, the path of the review score is relatively exogenous for the firms. Taking its current review score as given, a firm can decide whether to run a price promotion or not, which makes the main independent variables in my analysis exogenous. On top of that, model \ref{potTransitionsReg} includes a rich set of controls and fixed effects. Some threats to identification still remain, of course. One is unobserved marketing interventions preceding discounts. If advertisements improves the review score, then, by definition, advertisement would be correlated with the treatment variable, moving games a bit closer to transitions. If a discount then follows, as a part of the general marketing plan, rather than to leverage the new proximity to a transition, the positive association between discounting and positive transitions would be spurious. Note, however, that it would be more natural to expect firms to roll out all marketing interventions at the same time (i.e., running a price promotion while the game is advertised). In that case, the threat to identification vanishes. 
+It is not unreasonable to say that model \ref{potTransitionsReg} is able to identify the causal effect of the proximity to a review transition on discounting behavior. As the sample was selected to include only products with the most stable quality and the lowest number of game updates, the path of the review score is relatively exogenous for the firms. Taking its current review score as given, a firm can decide whether to run a price promotion or not, which makes the main independent variables in my analysis exogenous. On top of that, model \ref{potTransitionsReg} includes a rich set of controls and fixed effects. Some threats to identification still remain, of course. One is unobserved marketing interventions preceding discounts. If advertisements improves the review score, then, by definition, advertisement would be correlated with the treatment variable, moving games a bit closer to transitions. If a discount then follows, as a part of the general marketing plan, rather than to leverage the new proximity to a transition, the positive association between discounting and positive transitions would be spurious. Note, however, that it would be more natural to expect firms to roll out all marketing interventions at the same time (i.e., running a price promotion while the game is advertised). In that case, the threat to identification vanishes.
 
 I would now like to step back and look at the story behind the behavior that I am documenting. Several gaps are not filled yet. First, I have not presented evidence that discounting meaningfully increases sales and leads to more reviews. Neither have I presented evidence that better review bins increase sales. Perhaps, more importantly, I have not discussed why firms should expect customers buying during a discount to leave better reviews than customers paying the regular price. If there is no difference between the two groups, then giving a discount when the game is close to a transition is, at best, a gamble. In fact, there is some empirical evidence that customers who choose to go to a restaurant because of a promotion tend to leave worse reviews [@ByersEtAl12; @Li16], even though the effect could be positive in certain cases [@Li16; @ZhuEtAl19]. Theoretically, this effect is ambiguous. Consumers who buy when the price is low could be a worse match for the product and, thus, leave worse reviews. At the same time, such customers get a higher utility from paying less, which, together with a desire to reciprocate, can lead them to leave better reviews. See, for example, @AcemogluEtAl19.
 
@@ -622,7 +645,7 @@ straightforwardly achieved by opening the parentheses and estimating
 A_{it} = \lambda_i + \psi_i A_{it-1} + x'_{it}\beta_i + u_{it}
 \end{equation}
 using OLS on a game-by-game basis. This commonality is
-essential, however, because one game in the sample typically does not exhibit enough variation in review labels to be able to identify the effect of upgrading the review tier on sales. 
+essential, however, because one game in the sample typically does not exhibit enough variation in review labels to be able to identify the effect of upgrading the review tier on sales.
 
 The fact that $x'_{it}\beta$ multiplies the game fixed effect $\lambda_i$ allows me to estimate the dependence of quantity sold on price and reviews in relative terms, i.e., to obtain the elasticities. Normally, a log transformation is used to achieve that. Indeed, @SorokinStevens20 is able to estimate these elasticities with a within-estimator, using the following model
 \begin{equation}\label{logReg}
@@ -633,18 +656,18 @@ This specification “controls” for the (log) number of continuing players in 
 
 Another important reason for insisting on estimating the relative effects stems from the limitations of my data. Recall that the player count variable measures only the *maximum concurrent* number of active players every day. This implies that the estimated values of $\lambda_{it}$ would take into account only those new buyers who contribute to gaming activity during the “rush hour”. An implicit assumption in my analysis is that new buyers of the game all choose their gaming time following the same game-specific distribution. I use this assumption to say that, if the number of new active players during rush hour goes up by 1%, then sales go up by 1% across all types of players,  not only among the "rush hour ones".
 
-Assumption \(\mathbb{E}\left[u_i\,|\,A_{it-1}, x_{it} \right] = 0\) holds by definition for Model \ref{arrivalReg}, and guarantees identification of all parameters, as long as there is sufficient variation in the data. Of course, this is only true as long as equation \ref{arrivalReg} is the right model of the data generating process. A threat to identification would come from unobserved demand shifters $\tilde x_{it}$ that are correlated with the observed factors $x_{it}$ (omitted variable bias). For instance, an advertising intervention that is coupled with a price promotion would increase demand, but the entire effect would be attributed to the observed change in price. My approach is vulnerable to such events, as long as one is interested in getting the causal estimate of the discount elasticity of demand. 
+Assumption \(\mathbb{E}\left[u_i\,|\,A_{it-1}, x_{it} \right] = 0\) holds by definition for Model \ref{arrivalReg}, and guarantees identification of all parameters, as long as there is sufficient variation in the data. Of course, this is only true as long as equation \ref{arrivalReg} is the right model of the data generating process. A threat to identification would come from unobserved demand shifters $\tilde x_{it}$ that are correlated with the observed factors $x_{it}$ (omitted variable bias). For instance, an advertising intervention that is coupled with a price promotion would increase demand, but the entire effect would be attributed to the observed change in price. My approach is vulnerable to such events, as long as one is interested in getting the causal estimate of the discount elasticity of demand.
 
-However, I argue that (\ref{arrivalReg}) is an adequate specification, if the goal is to estimate the causal effect of reviews on sales, or to get a predictive model of demand. First and foremost, the reviews are not a choice variable of a firm, and rather serve as a state variable that a firm takes as given every day. Of course, there are various things that a firm can do, that can, in a non-guaranteed fashion, affect this variable. But, as long as the major tools that a firm has access to are controlled for in the regression, the exogenous variation in the review variables is sufficient to identify the causal effect of reviews on sales. 
- 
+However, I argue that (\ref{arrivalReg}) is an adequate specification, if the goal is to estimate the causal effect of reviews on sales, or to get a predictive model of demand. First and foremost, the reviews are not a choice variable of a firm, and rather serve as a state variable that a firm takes as given every day. Of course, there are various things that a firm can do, that can, in a non-guaranteed fashion, affect this variable. But, as long as the major tools that a firm has access to are controlled for in the regression, the exogenous variation in the review variables is sufficient to identify the causal effect of reviews on sales.
+
 One important way in which I control for various tools that firms have at their disposal is through sample selection. Sample selection rules out the possibility of an omitted variable bias stemming from a number of variables that could collectively be referred to as “changing quality”. The games in the sample are single player games, and thus are not subject to time-varying network externalities or frequent quality updates, that could be correlated with reviews, depths of discounts, and the player count. Second, game specific effect $\lambda_i$ controls for all time-invariant characteristics of game $i$ that determine average sales: initial marketing budget, extraneous popularity of the game's plot or setting, etc. Similarly, time effects control for important within-week seasonality in gaming patterns and for the extensive platform-wide sales. Third, note that Equation (\ref{arrivalReg}) allows each game to have its own continuation probability $\psi_i$, which could prove crucial in eliciting sales from the player count data. Two games could have the same observed median daily player count---say, ten people---but very different sales levels, if game one offers a lot of replayability and is played by the same ten people over and over again, and game two is played by new ten people every day. Intuitively, $\psi_i$ is identified by the rate of decay of the player count when it is far from its (slowly-changing) trend or average. Game release and discounts offer such events, when the player count spikes briefly due to all the new players who just bought the game; see example game in Figure \ref{exampleGame}.
 
 ### Price Elasticity of Demand
 To close off the discussion of identification of the demand parameters in Equation (\ref{arrivalReg}), I would like to elaborate on the identification of the price elasticity parameter. As I mentioned before, at the very least, including the price in the regression controls for unobserved marketing interventions that are coupled with discounts. Estimating the true price elasticity of demand is not important for the questions addressed in this paper, as I am not trying to prescribe the sizes of the discounts that firms should be giving to have a meaningful chance of affecting their review labels when they are close to a review transition. Arguably, a 100% discount is a powerful enough option to make this strategy viable, at least in principle. However, should the price coefficient be of primary interest, I would like to list some further factors that have an impact on the identification of thereof.
 
-First, I believe that standard concerns about the endogeneity of prices are not directly applicable in my context. The reason is the high frequency nature of the data and the stickiness of posted prices. Using the classic notation, imagine that a discount is given on date $t$, and we observe a quantity-price pair $(Q_t, P_t)$, both of which are different from their yesterday's counterparts $(Q_{t-1}, P_{t-1})$. The standard endogeneity concern is that firm's demand is subject to shocks, and that the firm would change its price precisely when those shocks occur. The two points then, roughly speaking, would belong to different demand curves, and one can not identify the slope of the demand curve\footnote{Assuming, as is usually done, that demand shifters lead to parallel shifts in demand}. In my setting, however, this would require the firms to systematically give discounts *exactly on the days* of the demand shocks, which requires possessing a level of insight into one's demand condition that is unrealistic, especially for small independent studios. While a discount for a racing game on the day of a major F-1 race is not implausible, should the demand for the game go up with a lag of as little as one day, then both $(Q_t, P_t)$ and $(Q_{t-1}, P_{t-1})$ would belong to the same demand curve, and, therefore, identification would not be threatened. 
+First, I believe that standard concerns about the endogeneity of prices are not directly applicable in my context. The reason is the high frequency nature of the data and the stickiness of posted prices. Using the classic notation, imagine that a discount is given on date $t$, and we observe a quantity-price pair $(Q_t, P_t)$, both of which are different from their yesterday's counterparts $(Q_{t-1}, P_{t-1})$. The standard endogeneity concern is that firm's demand is subject to shocks, and that the firm would change its price precisely when those shocks occur. The two points then, roughly speaking, would belong to different demand curves, and one can not identify the slope of the demand curve\footnote{Assuming, as is usually done, that demand shifters lead to parallel shifts in demand}. In my setting, however, this would require the firms to systematically give discounts *exactly on the days* of the demand shocks, which requires possessing a level of insight into one's demand condition that is unrealistic, especially for small independent studios. While a discount for a racing game on the day of a major F-1 race is not implausible, should the demand for the game go up with a lag of as little as one day, then both $(Q_t, P_t)$ and $(Q_{t-1}, P_{t-1})$ would belong to the same demand curve, and, therefore, identification would not be threatened.
 
-My second point is that, even though unobserved marketing interventions that are coupled with price promotions, would,  undoubtedly, be an issue, this problem could be addressed with some extra data collection. One way to proceed would be to study if such coupled promotions in fact do take place. In particular, one could collect data on YouTube queries mentioning the games in the sample, and use spikes in such queries as a proxy for unobserved marketing campaigns. 
+My second point is that, even though unobserved marketing interventions that are coupled with price promotions, would,  undoubtedly, be an issue, this problem could be addressed with some extra data collection. One way to proceed would be to study if such coupled promotions in fact do take place. In particular, one could collect data on YouTube queries mentioning the games in the sample, and use spikes in such queries as a proxy for unobserved marketing campaigns.
 
 A deeper problem for identifying the price elasticity of demand lies in defining precisely the elasticity of interest. A video game is a durable good, and some consumers could be purchasing it strategically, thinking about the probability and depth of discounts that they could get in the near future. A discount that is announced a week in advance will appear to have a strong effect on sales, but only because consumers would abstain from purchasing the game throughout that week. For studying counterfactual price policies one would need to specify a more complicated model of forward-looking consumers, and estimate the fundamentals of their behavior. A related problem is the importance of salience in a marketplace that has many thousands of products. Any price elasticity estimated relies on Steam keeping its algorithms unchanged. A game can give a 99% discount, but the quantity demanded will not change much if that promotion happens to not be reflected in Steam's system. This has implications, for instance, for picking good instruments for prices. Curated discounts created and managed by Steam are suggested to firms, and not chosen by them. In principle, such price changes could be exogenous to daily demand conditions. However, they could hardly be used as instruments for the price, because they also bring an immense boost in visibility, by the virtue of occupying the prime store main page space.
 
@@ -662,7 +685,7 @@ Proposition \ref{poissonReviews} allows one to easily write down the likelihood 
 \ell(g_i; r_{it}^+, \lambda_{it-k}) = \sum_{t\ge k} g_{it} \log r_{it}^+\lambda_{it-k} - r_{it}^+\lambda_{it-k} - \log g_{it}!
 \end{equation}
 
-I treat $\lambda_{it}$ as known, because parameters $\lambda_{i}$ and $\beta$ that determine it can be estimated consistently for the majority of games in the sample, given the long time dimension of the panel. For now I also take the lag $k$ between the time when the user buys the game and leaves a review for the game to be known. The parameters of interest are $(\rho_{0i}^+, \rho_{1i}^+)$, which parametrize the like rate as $r_{it}^+ = \rho_{0i}^+ + \rho_{1i}^+ disc_{it-k}$. The likelihood is concave in the parameters, so the parameters are identified as the maximizer of the likelihood. Restricting attention to a binary discount variable $disc_{it}$ allows me to derive a closed-form estimator for $(\rho_{0i}^+, \rho_{1i}^+)$. During a discount the like rate of game $i$ is $\rho_{0i}^+ + \rho_{1i}^+$, which is consistently estimated as 
+I treat $\lambda_{it}$ as known, because parameters $\lambda_{i}$ and $\beta$ that determine it can be estimated consistently for the majority of games in the sample, given the long time dimension of the panel. For now I also take the lag $k$ between the time when the user buys the game and leaves a review for the game to be known. The parameters of interest are $(\rho_{0i}^+, \rho_{1i}^+)$, which parametrize the like rate as $r_{it}^+ = \rho_{0i}^+ + \rho_{1i}^+ disc_{it-k}$. The likelihood is concave in the parameters, so the parameters are identified as the maximizer of the likelihood. Restricting attention to a binary discount variable $disc_{it}$ allows me to derive a closed-form estimator for $(\rho_{0i}^+, \rho_{1i}^+)$. During a discount the like rate of game $i$ is $\rho_{0i}^+ + \rho_{1i}^+$, which is consistently estimated as
 \begin{equation}\label{rhohat1}
 \hat \rho_{0i}^+ + \hat\rho_{1i}^+ = \frac{\sum_{t \ge k} disc_{it-k}g_{it}}{\sum_{t\ge k} disc_{it-k}\lambda_{it-k}},
 \end{equation}
@@ -670,7 +693,7 @@ As we can see, the ML-estimator of the like rate during a price promotion is jus
 \begin{equation}\label{rhohat2}
 \hat \rho_{0i}^+ = \frac{\sum_{t\ge k} (1-disc_{it-k})g_{it}}{\sum_{t\ge k} (1-disc_{it-k})\lambda_{it-k}},
 \end{equation}
-with the interpretation that the like rate in the absence of a discount is just a ratio of the reviews left outside of a discount and the expected number of customers outside a discount. 
+with the interpretation that the like rate in the absence of a discount is just a ratio of the reviews left outside of a discount and the expected number of customers outside a discount.
 
 Note that one can use these estimators to estimate the *average review score* on and off a discount, i.e., whether users are relatively more or less likely to leave a good review during a discount. For example, without a price promotion, one obtains
 \begin{equation}\label{avReviewScore}
@@ -695,7 +718,7 @@ An ideal set of covariates $x_{it}$ that I would like to use in estimating (\ref
 $$
 A_{it} = \psi_i A_{it-1} + \lambda_i(1+x'_{it}\beta) + u_{it},
 $$
-\noindent would be price, the review label, log reviews, age (plus a dummy for being at most 14 days old), and a set of day of the week and sample week time effects. However, this proved to be computationally infeasible. Even though I manage to concentrate out $2n=$`r 2*info[, .N]` game-specific parameters $(\lambda_i, \psi_i)$ from the numerical optimization routine, estimation of $\beta$ still relies on minimizing the sum of squared residuals in a $\dim(\beta)$-dimensional space. The routine would fail to converge to a solution within reasonable boundaries, so I had to eliminate some regressors. 
+\noindent would be price, the review label, log reviews, age (plus a dummy for being at most 14 days old), and a set of day of the week and sample week time effects. However, this proved to be computationally infeasible. Even though I manage to concentrate out $2n=$`r 2*info[, .N]` game-specific parameters $(\lambda_i, \psi_i)$ from the numerical optimization routine, estimation of $\beta$ still relies on minimizing the sum of squared residuals in a $\dim(\beta)$-dimensional space. The routine would fail to converge to a solution within reasonable boundaries, so I had to eliminate some regressors.
 
 The week effects contribute the most to the dimensionality of the problem, as there are `r panel[, length(unique(week))]` weeks in the sample. The reason to include these week effects is to account for platform-wide shocks. The biggest shocks shared by games on Steam are Seasonal Sales. These sales take place around major holidays, and, thus, blend together the increased platform-wide demand with the higher quantity demanded caused by the plethora of price promotions (depicted in Figure \ref{seasonalSales}). To capture these periods in a parsimonious way, I calculated the average daily discount in the sample, and labeled the days when the average discount exceeded 20\%. Figure \ref{seasonalSalesPeriods} in the Appendix shows that my definition tracks closely the spikes in the aggregate discounting behavior. I also tried using the raw value of the average discount in the sample, but the results remained the same.
 
@@ -721,7 +744,7 @@ rm(effects)
 
 ```{r results='asis'}
 reg1 <- plm(log(number) ~ log(numberLag) + log(price) +
-            discNewLag + discSeason + noScore + negative + 
+            discNewLag + discSeason + noScore + negative +
             mPositive +
             realPositive + vPositive + ovPositive +
             log(reviews+1) + score + age + young + day,
@@ -735,8 +758,8 @@ reg2 <- plm(log(number) ~ log(numberLag) + log(price) +
                 data=panel[price!=0,],
             model="within")
 
-# plmJuliaToTex contains a lot of manual coding, because of the 
-# difference in variable names between Julia and R codes. If you 
+# plmJuliaToTex contains a lot of manual coding, because of the
+# difference in variable names between Julia and R codes. If you
 # change the Julia results, or reg1/reg2 regs, you would have to
 # change plmJuliaToTex for this chunk to work properly
 res <- plmJuliaToTex(reg1, reg2, reg.results[, c(1,4)],
@@ -747,7 +770,7 @@ table <- texreg(res,
                 stars = c(0.01, 0.05, 0.1),
                 digits = 3,
                 custom.model.names = c("NLLS", "Reg", "Ideal Reg"),
-                #reorder.coef = c(1, 9, 2, 3, 8, 10, 
+                #reorder.coef = c(1, 9, 2, 3, 8, 10,
                 #                 4, 5, 6, 7, 11, 12),
                 caption = "Estimates of the Demand Parameters",
                 caption.above = T,
@@ -764,9 +787,9 @@ class(table) <- c("character", "texregTable")
 table
 ```
 
-Column “NLLS” in table \ref{demandEstimates} presents the estimates of the demand parameters in (\ref{arrivalReg}), and column “Reg” presents the results of estimating the log-regression (\ref{logReg}) with the same set of covariates; finally, column “Full Reg” reports the results of estimating the log-regression with the ideal set of covariates. The parameters that are of main interest are the price elasticity and the review labels semi-elasticities. 
+Column “NLLS” in table \ref{demandEstimates} presents the estimates of the demand parameters in (\ref{arrivalReg}), and column “Reg” presents the results of estimating the log-regression (\ref{logReg}) with the same set of covariates; finally, column “Full Reg” reports the results of estimating the log-regression with the ideal set of covariates. The parameters that are of main interest are the price elasticity and the review labels semi-elasticities.
 
-The price coefficient estimates display a strong unanimity across all specifications. It is, perhaps, surprising to find the price elasticity of demand to be as low as `r -round(reg1$coefficients[2], 1)`. It is tempting to 
+The price coefficient estimates display a strong unanimity across all specifications. It is, perhaps, surprising to find the price elasticity of demand to be as low as `r -round(reg1$coefficients[2], 1)`. It is tempting to
 
 
 ### Review Parameters
@@ -797,7 +820,7 @@ Table \ref{reviewLag} presents the results of estimating
 $$NewReviews_{it} =\sum_{l = 0}^{7} \mathds{1}(\text{Disc. } l \text{ days ago})
 + reviewBin_{it} + age_{it} + young_{it} +  f_i + \tau_t + u_{it}$$
 ```{r include=F}
-# Calculate the daily new review count and the lags of the dummy for new discount. 
+# Calculate the daily new review count and the lags of the dummy for new discount.
 panel[, new.reviews := c(reviews[1], diff(reviews)), by = ID]
 panel[, discNewLag2 := shift(discNewLag), by = ID][is.na(discNewLag2), discNewLag2 := F]
 panel[, discNewLag3 := shift(discNewLag2), by = ID][is.na(discNewLag3), discNewLag3 := F]
@@ -809,7 +832,7 @@ panel[, discNewLag7 := shift(discNewLag6), by = ID][is.na(discNewLag7), discNewL
 # normally, a lag(discNew, 0:7) could be used in the regression formula, but R returns an
 # error that I can not debug
 reg1 <- plm(new.reviews ~ discNew + discNewLag + discNewLag2 + discNewLag3 + discNewLag4 +
-                          discNewLag5 + discNewLag6 + discNewLag7 + 
+                          discNewLag5 + discNewLag6 + discNewLag7 +
                           negative + mPositive + realPositive + vPositive + ovPositive + score + age + young + day + week,
                           data = panel, model = "within")
 cov<-vcovHC(reg1, method="white1")
@@ -824,7 +847,7 @@ star.out <- stargazer(reg1,
              dep.var.labels = c("New Reviews"),
              covariate.labels = c("Discount 0 Days Ago", "Discount 1 Day Ago",
                                   "Discount 2 Days Ago", "Discount 3 Days Ago",
-                                  "Discount 4 Days Ago", "Discount 5 Days Ago", 
+                                  "Discount 4 Days Ago", "Discount 5 Days Ago",
                                   "Discount 6 Days Ago", "Discount 7 Days Ago"),
              model.numbers = F,
              omit = c("day","week","negative","mPositive","realPositive",
@@ -852,14 +875,14 @@ f<-panel[, .(disc = discSeason[1]), keyby = t][, .(t, z=c(NA, diff(disc)))]
 discPeriods <- data.frame(xstart = f[z==1, t], xend = c(f[z==-1, t], panel[, max(t)]))
 
 ggplot(data = panel[, .(y=sum(discount > 0)/(.N), z=avDisc[1]), by = t]) +
-  geom_rect(data = discPeriods, aes(xmin = xstart, xmax = xend, ymin = -Inf, ymax = Inf), fill = my.colors[2], alpha = 0.25) + 
+  geom_rect(data = discPeriods, aes(xmin = xstart, xmax = xend, ymin = -Inf, ymax = Inf), fill = my.colors[2], alpha = 0.25) +
   # ggtitle() +
   geom_line(aes(x = t, y = y),
             color = my.colors[1],
             size = 1) +
   scale_x_continuous(name = NULL,
-                     breaks = c(months1, months2)[seq(1,25,3)], 
-                     labels = months(getDate(c(months1, months2))[seq(1,25,3)], 
+                     breaks = c(months1, months2)[seq(1,25,3)],
+                     labels = months(getDate(c(months1, months2))[seq(1,25,3)],
                                      abbreviate=T),
                      minor_breaks = NULL) +
   scale_y_continuous(name = "Fraction of Games",
@@ -877,11 +900,11 @@ rm(months1, months2, f, discPeriods)
 
 \textbf{Proposition} \ref{poissonReviews}. Let the total number of reviewers during a day, $R$, be distributed Poisson with rate $\lambda$,  $R\sim P(\cdot; \lambda)$. A reviewer leaves a good review with probability $\pi$, and a bad review with probability $1-\pi$. Then, the numbers of good and bad reviews, $G$ and $B$, are independent Poisson random variables with rates $\pi\lambda$ and $(1-\pi)\lambda$.
 
-In the main text I have a Poisson arrival of customers, and only a fraction of them become reviewers, but the same proof goes through with that modification as well. The independence between the numbers of good and bad reviews is the surprising part of the proposition, and it is better highlighted in the form presented here. 
+In the main text I have a Poisson arrival of customers, and only a fraction of them become reviewers, but the same proof goes through with that modification as well. The independence between the numbers of good and bad reviews is the surprising part of the proposition, and it is better highlighted in the form presented here.
 
 \vspace{1em}\noindent *Proof*: We start by showing that $G$ is Poisson.
 $$
-\PP{G=g} = \sum_{n=g}^{\infty}\CP{G = g}{R=n}\PP{R = n} 
+\PP{G=g} = \sum_{n=g}^{\infty}\CP{G = g}{R=n}\PP{R = n}
 =
 \sum_{n = g}^{\infty}
 \frac{n!}{g!(n-g)!}
@@ -907,14 +930,14 @@ $$
 $$
 
 Now the independence part. We are interested in $\PP{G=g, B=b}$, which could be written as
-$$\PP{G=g, B=b} = \CP{G=g, B=b}{R=g+b}\PP{R=g+b} = 
+$$\PP{G=g, B=b} = \CP{G=g, B=b}{R=g+b}\PP{R=g+b} =
 \frac{(g+b)!}{g!b!}
 \pi^g (1-\pi)^b
 \frac{\lambda^{g+b}}{(g+b)!} e^{-\lambda}
 $$
 Simply write $e^{-\lambda} = e^{-\pi\lambda}e^{-(1-\pi)\lambda}$, and collect the terms with $g$ and with $b$ to get
 $$
-\PP{G=g, B=b} = 
+\PP{G=g, B=b} =
 \frac{\pi^g \lambda^g}{g!}e^{-\pi\lambda}
 \frac{(1-\pi)^b\lambda^b}{b!}e^{-(1-\pi)\lambda}
 =
@@ -962,12 +985,12 @@ as a solution to
 \begin{equation}\label{concFOC}
 \sum_{i=1}^n \sum_{t=2}^{T_i} (y_{it} - \psi_i(\beta) y_{it-1} - \lambda_i(\beta)(1+x'_{it}\beta))\lambda_i(\beta)x_{it} = 0
 \end{equation}
-In practice I solve the concentrated minimization problem using (\ref{concFOC}) as the gradient. 
+In practice I solve the concentrated minimization problem using (\ref{concFOC}) as the gradient.
 
 Supplying an analytic expression for the Hessian matrix has proven to significantly expedite and improve convergence. The concentrated out sum of squared errors is $SSE(\beta) = SSE(\beta, \lambda(\beta), \psi(\beta))$, and while the expression for the gradient simplifies to $\partial SSE/\partial \beta$ due to the envelope theorem, the expression for the Hessian is more complex:
 \begin{equation}\label{hessianEq}
-\frac{d SSE}{d^2\beta} = \frac{\partial SSE}{\partial^2 \beta} + 
-\sum_i \frac{\partial SSE}{\partial\lambda_i \partial \beta} \left(\frac{d \lambda_i}{d \beta}\right)' + 
+\frac{d SSE}{d^2\beta} = \frac{\partial SSE}{\partial^2 \beta} +
+\sum_i \frac{\partial SSE}{\partial\lambda_i \partial \beta} \left(\frac{d \lambda_i}{d \beta}\right)' +
 \sum_i \frac{\partial SSE}{\partial\psi_i \partial \beta} \left(\frac{d \psi_i}{d \beta}\right)'
 \end{equation}
 

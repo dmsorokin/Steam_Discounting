@@ -12,9 +12,7 @@ my.colors <- c("#1b85b8",  "#cc3399", "#007f66",  "#f27d0c", "#cc2a36")
 # the location if the graph looks better that way
 my.theme <- function(leg.x = 0.75, leg.y = 0.1){
   theme_bw() +
-    theme(panel.background = element_rect(
-      #fill = wes_palette("Moonrise1")[3]
-    ),
+    theme(panel.background = element_rect(),
     text = element_text(family="Times",size=11),
     plot.title = element_text(size=10, family="Times", face="bold",
                               #hjust=0.5,

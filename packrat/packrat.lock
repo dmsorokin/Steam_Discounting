@@ -1,6 +1,6 @@
 PackratFormat: 1.4
 PackratVersion: 0.5.0
-RVersion: 3.5.2
+RVersion: 4.0.2
 Repos: CRAN=https://cran.rstudio.com/
 
 Package: BH
@@ -56,6 +56,12 @@ Package: Rcpp
 Source: CRAN
 Version: 1.0.5
 Hash: f6e400231df42179d6ce8fb35e52bf3f
+
+Package: RcppArmadillo
+Source: CRAN
+Version: 0.9.900.2.0
+Hash: 83eea8771f03be6992f5a7e5b25b729b
+Requires: Rcpp
 
 Package: RcppEigen
 Source: CRAN
@@ -137,8 +143,8 @@ Requires: R6, processx
 
 Package: car
 Source: CRAN
-Version: 3.0-8
-Hash: f87c24eaaa67b17d1c6eab936f03a82c
+Version: 3.0-9
+Hash: 0a0556a6b4203b6938eb75d9263bbf37
 Requires: abind, carData, lme4, maptools, pbkrtest, quantreg, rio
 
 Package: carData
@@ -173,6 +179,12 @@ Source: CRAN
 Version: 1.7
 Hash: 77f4ba718e2bad1877ef26e48cf8fa43
 
+Package: conquer
+Source: CRAN
+Version: 1.0.1
+Hash: 34c419b8b8c2d4671ecbbeefee713931
+Requires: Rcpp, RcppArmadillo, matrixStats
+
 Package: corrplot
 Source: CRAN
 Version: 0.84
@@ -192,8 +204,8 @@ Requires: ggplot2, gtable, rlang, scales
 
 Package: cpp11
 Source: CRAN
-Version: 0.1.0
-Hash: 1289380d95716637514586348d785401
+Version: 0.2.1
+Hash: 4c4a213a3e32c76e5979b7dde07b2c94
 
 Package: crayon
 Source: CRAN
@@ -213,8 +225,8 @@ Hash: 3916ae5637dbaf5996dbde80ea92a047
 
 Package: data.table
 Source: CRAN
-Version: 1.12.8
-Hash: 283ad0e503ab521300c6d1d02e58d2ae
+Version: 1.13.0
+Hash: 7ac8e8514f185a5415ecc95ccbc50e1a
 
 Package: desc
 Source: CRAN
@@ -297,21 +309,12 @@ Hash: e5836c08c1243c1fc26608f708fc1d8c
 Requires: digest, glue, gtable, isoband, rlang, scales, tibble, withr
 
 Package: ggpubr
-Source: github
-Version: 0.4.0.999
-Hash: b8949b13273fdcb86fe942729a9587e1
+Source: CRAN
+Version: 0.4.0
+Hash: 14e08e93e6aaca54c77fc89ad187bc50
 Requires: cowplot, dplyr, ggplot2, ggrepel, ggsci, ggsignif, glue,
     gridExtra, magrittr, polynom, purrr, rlang, rstatix, scales,
     tibble, tidyr
-GithubRepo: ggpubr
-GithubUsername: kassambara
-GithubRef: HEAD
-GithubSha1: fb88d77095cb954e95d477a0d5474bdb81b79666
-RemoteHost: api.github.com
-RemoteRepo: ggpubr
-RemoteUsername: kassambara
-RemoteRef: HEAD
-RemoteSha: fb88d77095cb954e95d477a0d5474bdb81b79666
 
 Package: ggrepel
 Source: CRAN
@@ -464,9 +467,9 @@ Requires: glue, rlang
 
 Package: lme4
 Source: CRAN
-Version: 1.1-21
-Hash: 195b58fa069baa301863366d52fdf06a
-Requires: Rcpp, RcppEigen, minqa, nloptr
+Version: 1.1-23
+Hash: fd87b4c524a126be36e7c9df3fe6bf18
+Requires: Rcpp, RcppEigen, minqa, nloptr, statmod
 
 Package: lmtest
 Source: CRAN
@@ -490,6 +493,11 @@ Source: CRAN
 Version: 1.1
 Hash: 1b6a18fd395589425e338a47b999099f
 Requires: mime, xfun
+
+Package: matrixStats
+Source: CRAN
+Version: 0.56.0
+Hash: 350c7c45268109cda91a1a34b38cd3a6
 
 Package: maxLik
 Source: CRAN
@@ -528,8 +536,8 @@ Requires: colorspace
 
 Package: nloptr
 Source: CRAN
-Version: 1.2.2.1
-Hash: 8326c209718042a4fd409517f703e4cd
+Version: 1.2.2.2
+Hash: 7dc35284ad3b1c84440237c0010c2682
 
 Package: openssl
 Source: CRAN
@@ -550,9 +558,9 @@ Hash: 498643e765d1442ba7b1160a1df3abf9
 
 Package: pbkrtest
 Source: CRAN
-Version: 0.4-7
-Hash: f195c3a0f527f69c491569c5cbaaf1db
-Requires: lme4
+Version: 0.4-8.6
+Hash: 9520cf98aba557ce30232d952ab67c7a
+Requires: lme4, magrittr
 
 Package: pillar
 Source: CRAN
@@ -625,8 +633,8 @@ Requires: R6, Rcpp, later, magrittr, rlang
 
 Package: ps
 Source: CRAN
-Version: 1.3.3
-Hash: 017cf9da2d29e4134b5e3e58176a87ad
+Version: 1.3.4
+Hash: d19c0a5ddc9ace11844c0e988d249c0a
 
 Package: purrr
 Source: CRAN
@@ -636,9 +644,9 @@ Requires: magrittr, rlang
 
 Package: quantreg
 Source: CRAN
-Version: 5.54
-Hash: b1662addfb95ee8dc4f72408e65b97b1
-Requires: MatrixModels, SparseM
+Version: 5.61
+Hash: cdc3e2085f5a839f448018dcf2fd088a
+Requires: MatrixModels, SparseM, conquer
 
 Package: rcmdcheck
 Source: CRAN
@@ -830,7 +838,7 @@ Requires: cli, crayon, ellipsis, fansi, lifecycle, magrittr, pillar,
 Package: tidyr
 Source: CRAN
 Version: 1.1.1
-Hash: 33a31005500df80f8fc11d9d6c7804ac
+Hash: 879ae4cfada8d90da3cfc69bd3a9942e
 Requires: cpp11, dplyr, ellipsis, glue, lifecycle, magrittr, purrr,
     rlang, tibble, tidyselect, vctrs
 
@@ -875,11 +883,6 @@ Version: 0.5.2
 Hash: 43c1ec9eb3b4d97e971a4963b7a2e155
 Requires: callr, jsonlite, magrittr
 
-Package: wesanderson
-Source: CRAN
-Version: 0.3.6
-Hash: 9a484a24b63b47a03aba391fdc4885d6
-
 Package: whisker
 Source: CRAN
 Version: 0.4
@@ -913,8 +916,8 @@ Hash: 424bc11cc358f23187feaa7978628196
 
 Package: zip
 Source: CRAN
-Version: 2.0.4
-Hash: f86b0ae5776b2e3880871fb0e34e5e48
+Version: 2.1.0
+Hash: 87b493671e84ee50e1f3794e5570d0a7
 
 Package: zoo
 Source: CRAN
