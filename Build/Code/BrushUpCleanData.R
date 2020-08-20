@@ -139,7 +139,6 @@ setkey(info, ID)
 rm(relDates)
 
 # Only keep games we have reviews for
-# load(here("Build","Output","AnalysisData","panelReviews.Rda"))
 ids <- intersect(ids, panelReviews[, unique(game_id)])
 info <- info[ID %in% ids, ]
 info <- info[, firstDayReview:=

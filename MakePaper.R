@@ -2,7 +2,7 @@ library(here)
 library(R.utils)
 library(rmarkdown)
 # If you have obtained raw data from me, you can uncomment this in order to 
-# create the sample yourself.r
+# create the sample yourself
 # source(here("Build", "Code", "CreateSample.R")) 
 
 # Output of Build is Input for Analysis, creating a symbolic link 
@@ -21,4 +21,3 @@ createLink(here("Analysis", "Output", "reviewsBib.bib"),
 rmarkdown::render(here("Analysis", "Code", "Paper.Rmd"),
                   output_dir = here("Analysis", "Output"),
                   output_format = "pdf_document")
-

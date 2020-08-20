@@ -1,0 +1,13 @@
+[deps]
+Atom = "c52e3926-4ff0-5f6e-af25-54175e0327b1"
+CSVFiles = "5d742f6a-9f54-50ce-8119-2520741973ca"
+DataFrames = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0"
+Distributions = "31c24e10-a181-5473-b8eb-7969acd0382f"
+IJulia = "7073ff75-c697-5162-941a-fcdaad2a7d2a"
+Juno = "e5e0dc1b-0480-54bc-9374-aad01c23163d"
+LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
+NLSolversBase = "d41bc354-129a-5804-8e4c-c37616107c6c"
+Optim = "429524aa-4258-5aef-a3af-852621145aeb"
+PkgAuthentication = "4722fa14-9d28-45f9-a1e2-a38605bd88f0"
+StatsBase = "2913bbd2-ae8a-5f71-8c99-4fb6c76f3a91"
+Weave = "44d3d7a6-8a23-5bf8-98c5-b353f8df5ec9"

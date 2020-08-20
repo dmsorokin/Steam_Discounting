@@ -43,7 +43,7 @@ library(here)
 library(devtools) # for installing packages through GitHub, needed for starpolishr
 library(data.table)
 library(stringr)
-library(stringi) # that is wasteful, but it happened
+library(stringi) # this is wasteful, but it happened because of collaboration
 library(anytime)
 library(dplyr)
 library(magrittr)
@@ -59,12 +59,11 @@ library(plm)
 library(stargazer)
 library(starpolishr) # install by devtools::install_github("ChandlerLutz/starpolishr")
 library(texreg)
-library(R.utils)
 
 knitr::opts_chunk$set(echo=F,eval=T,message=F,warning=F,comment=NA,cache=T)
-knitr::opts_chunk$set(fig.pos = "hp", out.extra = "", fig.align = "center")
+knitr::opts_chunk$set(fig.pos = "htp", out.extra = "", fig.align = "center")
 
-source(here("Analysis", "Code", "StructuralFunctions.R"))
+source(here("Analysis", "Code", "AnalysisFunctions.R"))
 load(here("Analysis", "Input", "info.Rda"))
 load(here("Analysis", "Input", "panel.Rda"))
 ```
@@ -362,7 +361,7 @@ transPanel <- transitions[(is.na(dur) | dur >= 7),
                  by = c("ID","t")] %>% unique()
 transPanel[, t := NULL]
 setnames(transPanel, old = "time", new = "t")
-transPanel <- merge(transPanel, panel[,.(ID, t, age, discount, discNew, tWODisc, reviews, score, noScore, negative, mPositive, positive, realPositive, vPositive, ovPositive, day, week)], by = c("ID","t"))
+transPanel <- merge(transPanel, panel[,.(ID, t, age, discount, discNewLag, tWODisc, reviews, score, noScore, negative, mPositive, positive, realPositive, vPositive, ovPositive, day, week)], by = c("ID","t"))
 setkey(transPanel, "ID", "t", "trID")
 
 transPanel[, discount := discount*100]
@@ -383,18 +382,15 @@ stargazer(
 ```
 
 
-
 ```{r transition-discount-plot, fig.cap='\\label{discountsTransitions} Discounting By Games Around The Transition.'}
-ggplot(data=transPanel[, .(x=tToTransit, y=100*(discount>0),
+ggplot(data=transPanel[, .(x=tToTransit, y=100*(discount > 0),
                            g=factor(goodTr))],
        aes(x=x, y=y)) +
    geom_vline(xintercept = 0, linetype = "longdash", size = 0.2) +
    aes(color=g) + 
    stat_summary(fun.data = mean_se,
-               #color = my.colors[1:2],
                size=0.4) +
-   geom_smooth(#color=my.colors[3],
-              size=0.6, se = F) +
+   geom_smooth(size=0.6, se = F) +
    scale_x_continuous(name = "Days After Transition",
                      breaks = seq(-14, 14, 2),
                      minor_breaks = NULL) +
@@ -405,9 +401,27 @@ ggplot(data=transPanel[, .(x=tToTransit, y=100*(discount>0),
    my.theme(leg.x = 0.78, leg.y = 0.82)
 ```
 
-```{r, include=F}
+```{r cache=F}
+# These are the tricks that I used in the Julia code, and I reuse them here for 
+# consistency. Now that describing the sample is done, these changes will facilitate
+# the analysis without messing up the exposition.
+
+# Score and reviews variables are now 1{score is defined} x Var. This allows to 
+# run regressions without excluding observations with < 10 reviews, for which the 
+# score variable is, technically, undefined.
 panel[noScore==T, score := 0]
-panel[noScore==T, reviews := 0]
+# panel[noScore==T, reviews := 0]
+
+# Instead of using log price, I normalize the price to be between 0 and 1 for 
+# each game. This allows me to include the rare observations with zero prices, unlike
+# the log price specification.
+panel[, price := round(price/(price[1]/(1-discount[1])), digits = 2), by=ID]
+# price for the game that has a 100% discount in the data
+panel[is.na(price), price := 1.0]
+```
+
+
+```{r, include=F}
 reg1 <- lm(I(discount>0) ~  tToTransitNeg + tToTransitPos + 
              noScore + negative + mPositive + realPositive +
              vPositive + ovPositive + score +
@@ -718,44 +732,43 @@ An ideal set of covariates $x_{it}$ that I would like to use in estimating (\ref
 $$
 A_{it} = \psi_i A_{it-1} + \lambda_i(1+x'_{it}\beta) + u_{it},
 $$
-\noindent would be price, the review label, log reviews, age (plus a dummy for being at most 14 days old), and a set of day of the week and sample week time effects. However, this proved to be computationally infeasible. Even though I manage to concentrate out $2n=$`r 2*info[, .N]` game-specific parameters $(\lambda_i, \psi_i)$ from the numerical optimization routine, estimation of $\beta$ still relies on minimizing the sum of squared residuals in a $\dim(\beta)$-dimensional space. The routine would fail to converge to a solution within reasonable boundaries, so I had to eliminate some regressors.
+\noindent would be price, review label, score, log reviews, age, and a set of day of the week and sample week time effects. However, this proved to be computationally infeasible. Even though I manage to concentrate out $2n=$ `r 2*info[, .N]` game-specific parameters $(\lambda_i, \psi_i)$ from the numerical optimization routine, estimation of $\beta$ still relies on minimizing the sum of squared residuals in a $\dim(\beta)$-dimensional space. The routine would fail to converge to a solution within reasonable boundaries, so I had to alter the specification.
 
-The week effects contribute the most to the dimensionality of the problem, as there are `r panel[, length(unique(week))]` weeks in the sample. The reason to include these week effects is to account for platform-wide shocks. The biggest shocks shared by games on Steam are Seasonal Sales. These sales take place around major holidays, and, thus, blend together the increased platform-wide demand with the higher quantity demanded caused by the plethora of price promotions (depicted in Figure \ref{seasonalSales}). To capture these periods in a parsimonious way, I calculated the average daily discount in the sample, and labeled the days when the average discount exceeded 20\%. Figure \ref{seasonalSalesPeriods} in the Appendix shows that my definition tracks closely the spikes in the aggregate discounting behavior. I also tried using the raw value of the average discount in the sample, but the results remained the same.
+The week effects contribute the most to the dimensionality of the problem, as there are `r panel[, length(unique(week))]` weeks in the sample. The reason to include these week effects is to account for platform-wide shocks. The biggest shocks shared by games on Steam are Seasonal Sales. These sales take place around major holidays, and, thus, blend together the increased platform-wide demand due to holidays with the higher quantity demanded caused by the plethora of price promotions (depicted in Figure \ref{seasonalSales}). To capture these periods in a parsimonious way, I calculated the average daily discount in the sample, and labeled the days when the average discount exceeded 20\%. Figure \ref{seasonalSalesPeriods} in the Appendix shows that my definition tracks closely the spikes in the aggregate discounting behavior. I also tried using the raw value of the average discount in the sample, but the results remained the same.
 
-Another exclusion I have to make is that of the “Very Positive” and “Overwhelmingly Positive” review lables. While the latter is not very prevalent in the sample, as is depicted in Figure \ref{reviewDescriptivePlots}, the former is by far the most common review label. In order to avoid dropping out these observations, I pool the “Very Positive” and “Overwhelmingly Positive” labels together with the “Positive” label. Recall that the only difference between “Positive” and “Very Positive” is whether the game has less or more than 50 reviews, so this pooling averages between two similar and adjacent review labels.
-
-Thus, the final set of covariates that I use in estimating (\ref{arrivalReg}) are: price, review label, log reviews, two age variables, and a set of day of the week time effects, and a Seasonal Sale dummy. I mentioned in the Identification section that a more simplistic, yet more tractable, alternative to estimating the non-linear model (\ref{arrivalReg}) is given by equation (\ref{logReg})
+The substitution of the week dummies with a Seasonal Sale dummy proved to be sufficient for convergence. I mentioned in the Identification section that a more simplistic, yet more tractable, alternative to estimating the non-linear model (\ref{arrivalReg}) is given by equation (\ref{logReg})
 $$
 \log A_{it} = \tilde\lambda_i + \tilde\psi_i \log A_{it-1} + x'_{it}\tilde \beta + u_{it}
 $$
-\noindent To check whether the omitted covariates could be playing a crucial role, I report the results of estimaing (\ref{logReg}) both with the ideal set of covariates, and with the covariates used to estimate (\ref{arrivalReg}). The results are presented in Table \ref{demandEstimates}.
+\noindent To check whether the omitted week effects could play a crucial role, I report the results of estimaing (\ref{logReg}) both with the ideal set of covariates, and with the covariates used to estimate (\ref{arrivalReg}). The results are presented in Table \ref{demandEstimates}.
 
 ```{r cache = F}
 reg.results <- fread(here("Analysis", "Temp", "juliaResults.csv")) %>% as.data.frame()
 beta.hat <- reg.results[seq(1, nrow(reg.results), 3), 4] %>% round(., 3)
 reg.results.stats <- fread(here("Analysis", "Temp", "juliaResults2.csv")) %>% as.data.frame()
 effects<-fread(here("Analysis", "Temp", "juliaResults3.csv"))
-effects <- merge(effects, info[, .(id, ID)], by = c("id"), all.x = T)
+effects <- merge(effects, info[, .(id, ID, maxPlayers)], by = c("id"), all.x = T)
+effects[, lambda := maxPlayers * lambda]
 panel <- merge(panel, effects[, .(ID, t, lambda = lambda * z)], by = c("ID", "t"))
-effects <- effects[, .(psi=psi[1], lambda=lambda[1], mz = mean(z)), by = ID]
+effects <- effects[, .(psi=psi[1], mlambda=lambda[1]*mean(z)), by = ID]
 info <- merge(info, effects, by = c("ID"))
 rm(effects)
 ```
 
 ```{r results='asis'}
-reg1 <- plm(log(number) ~ log(numberLag) + log(price) +
+reg1 <- plm(log(number) ~ log(numberLag) + price +
             discNewLag + discSeason + noScore + negative +
             mPositive +
             realPositive + vPositive + ovPositive +
-            log(reviews+1) + score + age + young + day,
-                data=panel[price!=0,],
+            log(reviews+1) + score + age + I(age<=7) + day,
+                data=panel,
             model="within")
 
-reg2 <- plm(log(number) ~ log(numberLag) + log(price) +
+reg2 <- plm(log(number) ~ log(numberLag) + price +
               discNewLag + noScore + negative + mPositive +
               realPositive + vPositive + ovPositive +
-              log(reviews+1) + score + age + young + day + week,
-                data=panel[price!=0,],
+              log(reviews+1) + score + age + I(age<=7) + day + week,
+                data=panel,
             model="within")
 
 # plmJuliaToTex contains a lot of manual coding, because of the
@@ -770,8 +783,7 @@ table <- texreg(res,
                 stars = c(0.01, 0.05, 0.1),
                 digits = 3,
                 custom.model.names = c("NLLS", "Reg", "Ideal Reg"),
-                #reorder.coef = c(1, 9, 2, 3, 8, 10,
-                #                 4, 5, 6, 7, 11, 12),
+                reorder.coef = c(1, 2, 6, 7, 8, 9, 10, 11, 5, 12, 3, 4, 13, 14),
                 caption = "Estimates of the Demand Parameters",
                 caption.above = T,
                 label = "demandEstimates")
@@ -779,7 +791,7 @@ table <- texreg(res,
 season.location <- str_locate(table, c("Weekdays"))[1]
 table.bottom <- str_sub(table, season.location, str_length(table))
 table.top <- str_sub(table, 1, season.location - 1)
-table.bottom <- str_replace_all(table.bottom, "0.000", "\\\\times")
+table.bottom <- str_replace_all(table.bottom, "\\$0.000\\$", "$\\\\times$")
 table.bottom <- str_replace_all(table.bottom, "1.000", "\\\\checkmark")
 table.bottom <- str_replace_all(table.bottom, ".000", "")
 table <- paste(table.top, table.bottom, sep = "")
@@ -787,16 +799,159 @@ class(table) <- c("character", "texregTable")
 table
 ```
 
-Column “NLLS” in table \ref{demandEstimates} presents the estimates of the demand parameters in (\ref{arrivalReg}), and column “Reg” presents the results of estimating the log-regression (\ref{logReg}) with the same set of covariates; finally, column “Full Reg” reports the results of estimating the log-regression with the ideal set of covariates. The parameters that are of main interest are the price elasticity and the review labels semi-elasticities.
+Column “NLLS” in Table \ref{demandEstimates} presents the estimates of the demand parameters in (\ref{arrivalReg}), and column “Reg” presents the results of estimating the log-regression (\ref{logReg}) with the same set of covariates; finally, column “Full Reg” reports the results of estimating the log-regression with the ideal set of covariates (using week effects instead of the Seasonal Sale dummy). It is readily checked that the difference between the preferred log-regression in column 3 and its restricted analog in column 2 is very small. The $R^2$ statistic confirms that week effects do not contribute much to explaining the data, and I conclude that the Seasonal Sale dummy captures the main time-specific shocks well. Thus, it is reasonable to say that the omission of the week effects from the nonlinear Model (\ref{arrivalReg}) comes at little cost.  Now we can concentrate on the estimates of the demand parameters in (\ref{arrivalReg}), presented in the first column, and compare them with the heuristic regression results in the second or third column.
 
-The price coefficient estimates display a strong unanimity across all specifications. It is, perhaps, surprising to find the price elasticity of demand to be as low as `r -round(reg1$coefficients[2], 1)`. It is tempting to
+The review labels' semi-elasticities are fairly similar across the specifications. All specificaitons exhibit a monotonicity in the effects of different review tiers on sales. The "Negative" label is at most as good as "Mixed" (the reference group), with the log-regression results finding a penalty of `r round(-100*reg1$coefficients[6])`% that the "Negative" label entails; the "Mostly Positive" bin increseases sales by `r round(beta.hat[8]*100)`-`r round(100*reg2$coefficients[7])`% compared to the "Mixed" bin. At the top end we see that the "Overwhelmingly Positive" label increases demand by `r round(100*reg2$coefficients[10])`-`r round(beta.hat[11]*100)`%. These magnitudes are economically sizable and reasonable. These results close the gap that my analysis has exhibited so far, and confirms that good reviews are important for sales in the Steam marketplace.  
 
+However, columns 1 and 2-3 differ substantially in the estimates of the effect of having no score on sales\footnote{In order to have both the score variable $\in [0,100]$ and a dummy for the "No Score" label I set the former to be equal to 0 when a game has no review label (which happens when it has less than 10 reviews). Thus, the score variable really measures the effect of score once the score is defined.}. While Model (\ref{arrivalReg}) suggests that having no score is associated with a `r -round(beta.hat[6]*100)`% slower customer arrival than having the “Mixed” review label, its simplified log-regression analogs find the opposite effect of a having `r round(reg1$coefficients[5]*100)`-`r round(reg2$coefficients[4]*100)`% bonus associated with having not enough reviews. The latter effect can not possibly be taken at face value, given that the most exlusive review label "Overwhelmingly Positive" only increases sales by  at most `r round(beta.hat[11]*100)`%. It would be possible to explain such large estimates by high levels of demand  when the game is young and is likely to have less than 10 reviews, but I control for being “young” by including the dummy for being less than 14 days of age. Thus, the coefficient on “No Score” is identified by games that exit this bin later than their first two weeks. Such games constitute `r round(100*panel[noScore==T & age>=14, length(unique(ID))]/info[,.N])`% of the sample, and could be different somehow from the rest of the games. In any case, it is hard to explain such a big effect. One explanation that works is that the log-regression simplification (\ref{logReg}) is misguided, and that one should only trust the coefficients from the structural model of the demand process (\ref{arrivalReg}). This latter model finds a penalty of `r -round(beta.hat[6]*100)`% associated with  having no score, which sounds much more reasonable. A negative effect could be attributed to customers' reluctance to purchase products of unknown quality. If that is the case, this finding suggests a pretty serious cost of asymetric information in this market. The same column,
+
+The second imprortant set of variables are the price variables. 
+
+
+
+
+```{r fig.cap='\\label{psiLambdaDist} Distribtuions of the continuation probability $\\psi_i$ and average sales $\\bar{\\lambda}_{i}$.'}
+rm(res)
+p1 <- ggplot(data = info[, .(psi)]) +
+  geom_histogram(mapping = aes(x = psi, y = ..density..),
+                 color = "black",
+                 position = "identity",
+                 alpha = 0.9,
+                 binwidth = 0.05,
+                 boundary = 0,
+                 fill = my.colors[1]) +
+  geom_density(mapping = aes(x = psi),
+                 color = "black",
+                 position = "identity",
+                 alpha = 0.4,
+                 fill = my.colors[1]) +
+  scale_x_continuous(name = "Probability",
+                     breaks = seq(0, 10, 2)/10,
+                     minor_breaks = NULL) +
+  scale_y_continuous(name = NULL,
+                     minor_breaks = NULL) +
+  my.theme()
+
+p2 <- ggplot(data = info[, .(x = log(mlambda))]) +
+  geom_histogram(mapping = aes(x = x, y = ..density..),
+                 color = "black",
+                 position = "identity",
+                 alpha = 0.9,
+                 boundary = 0,
+                 fill = my.colors[1]) +
+  geom_density(mapping = aes(x = x),
+                 color = "black",
+                 position = "identity",
+                 alpha = 0.4,
+                 fill = my.colors[1]) +
+  scale_x_continuous(name = "Log Buyers",
+                     minor_breaks = NULL) +
+  scale_y_continuous(name = NULL,
+                     minor_breaks = NULL) +
+  my.theme()
+
+ggarrange(p1, p2, nrow=1, align = "h")
+```
+
+```{r lambda-psi-beamer, fig.width = 8, fig.height = 6, include = FALSE}
+ggarrange(p1, p2, nrow=2, align = "v")
+```
 
 ### Review Parameters
 
 
+```{r}
+# Notice that rhoPosD is the sum of the parameters I defined
+# in the text, rho_0i^+ and rho_1i^+, but the variance matrix is
+# calculated for the original parameters
+panel[, disc:=c(shift((discount > 0))),
+      by = ID][is.na(disc), disc := F]
+revs <- panel[, .(t, disc, lambda, l = c(pReviews[1], diff(pReviews)), d = c(nReviews[1], diff(nReviews))), by=ID]
+revs <- revs[, .(rhoPosD = sum(disc*l) / sum(disc*lambda),
+                 rhoPosND = sum((1-disc)*l) / sum((1-disc)*lambda),
+                 rhoNegD = sum(disc*d) / sum(disc*lambda),
+                 rhoNegND = sum((1-disc)*d) / sum((1-disc)*lambda)),
+              by = ID]
+revs <- revs[!is.na(rhoPosD)]
+
+id.matrix <- matrix(c(1,0,0,1), nrow=2)
+for (id in revs[, ID]){
+   sums <- panel[ID==id, .(disc, lambda)][, sum(lambda), by = disc]
+
+   matND <- matrix(c(sums[disc==F,V1],0,0,0), nrow=2)
+   matD <- matrix(rep(sums[disc==T,V1],4), nrow=2)
+
+   Hpos <- matND/revs[ID==id, rhoPosND] + matD/revs[ID==id, rhoPosD]
+   HposInv <- solve(Hpos, id.matrix)
+
+   Hneg <- matND/revs[ID==id, rhoNegND] + matD/revs[ID==id, rhoNegD]
+   HnegInv <- solve(Hpos, id.matrix)
+
+   revs[ID==id, rhoPos0se := sqrt(HposInv[1,1])]
+   revs[ID==id, rhoPos1se := sqrt(HposInv[2,2])]
+
+   revs[ID==id, rhoNeg0se := sqrt(HnegInv[1,1])]
+   revs[ID==id, rhoNeg1se := sqrt(HnegInv[2,2])]
+}
+
+# label all games with significant rho_1^+
+revs[, posSignif := abs((rhoPosD-rhoPosND)/rhoPos1se) >= 1.96]
+revs[, negSignif := abs((rhoNegD-rhoNegND)/rhoNeg1se) >= 1.96]
+rm(Hpos, Hneg, HnegInv, HposInv)
+```
 
 
+The main parameters of interest in this section are $(\rho_{1i}^+, \rho_{1i}^-)$, which measure the change in the review rate during discounts that is not due to the increase in mere volume of the reviews. The precision with which this parameter could be estimated depends on the number of discount days we observe for game $i$. For some games it is impossible to estimate the parameter precisely, either due to their short presence in the sample, insufficient number of discounts, or both. However, out of `r info[, .N]` games in the sample, `r revs[posSignif == T, .N]` have a value of $\rho_{1i}^+$ that is statistically different from zero. The distributions of $\rho_{1i}^+$ and $\rho_{1i}^-$ for those games are plotted in Figure \ref{likeRatesPlot}.
+
+```{r like-rates, fig.width = 8, fig.height = 6, include = F}
+p1 <- ggplot(data = revs[posSignif==T, .(x = rhoPosD-rhoPosND)][x>=-0.5& x<=2,]) +
+  ggtitle("Discount Contribution to Likes") +
+  geom_histogram(mapping = aes(x = x, y = ..density..),
+                 color = "black",
+                 position = "identity",
+                 boundary = 0,
+                 alpha = 0.9,
+                 binwidth = 0.25,
+                 fill = my.colors[1]) +
+  geom_density(mapping = aes(x = x),
+                 color = "black",
+                 position = "identity",
+                 alpha = 0.4,
+                 fill = my.colors[1]) +
+  scale_x_continuous(name = "Change in Like Rates",
+                     minor_breaks = NULL) +
+  scale_y_continuous(name = NULL,
+                     breaks = c(0, 1, 2),
+                     minor_breaks = NULL) +
+  my.theme() +
+  coord_cartesian(xlim = c(-0.5, 2))
+
+p2 <- ggplot(data = revs[posSignif==T, .(x = rhoNegD-rhoNegND)][x>=-0.5& x<=2,]) +
+  ggtitle("Discount Contribution to Dislikes") +
+  geom_histogram(mapping = aes(x = x, y = ..density..),
+                 color = "black",
+                 position = "identity",
+                 boundary = 0,
+                 alpha = 0.9,
+                 fill = my.colors[1]) +
+  geom_density(mapping = aes(x = x),
+                 color = "black",
+                 position = "identity",
+                 alpha = 0.4,
+                 fill = my.colors[1]) +
+  scale_x_continuous(name = "Change in Dislike Rates",
+                     minor_breaks = NULL) +
+  scale_y_continuous(name = NULL,
+                     minor_breaks = NULL) +
+  my.theme() +
+  coord_cartesian(xlim = c(-0.5, 2))
+
+ggarrange(p1, p2, nrow=2, align = "v")
+```
+
+```{r fig.cap='\\label{likeRatesPlot} Distributions of $\\rho_{1i}^+$ and $\\rho_{1i}^-$', fig.width=9}
+ggarrange(p1, p2, nrow=1, align = "h")
+```
 
 
 

@@ -1,3 +1,12 @@
+library(here)
+library(data.table)
+library(stringr)
+library(stringi) # that is wasteful, but it happened
+library(anytime)
+library(dplyr)
+library(tidyr)
+library(fastDummies)
+
 # This organizes processed raw data and has some basic filters
 source(here("Build", "Code", "BrushUpCleanData.R"))
 # Load functions
@@ -25,44 +34,49 @@ info<-info[mult==F&multOnline ==F&crossplatform==F&mmo==F&ea==F&
           mult:=NULL][,multOnline:=NULL][,mmo:=NULL][,crossplatform:=F]
 info[,ea:=NULL][,eaExit:=NULL]
 
-# Drop the largest outlier game
-info <- info[ID != 437060, ]
 
 load(here("Build", "Temp", "pricesSample.Rda"))
+# there is an issue with class attributes of the date column, so I convert it
+# to String to be able to add some new rows
+prices[, date2 := toString(date), by = c("ID", "date")]
+prices <- prices[, .(ID = ID, date = date2, price = price, discount = discount)]
 prices[, discNew := discount > 0]
-prices[, date := anydate(date)]
-
 # some manual corrections of scraping mistakes. These mistakes seem to steamDB's,
 # not mine
-prices <- rbind(prices, list(626640, anydate("2017-10-26"), 6.99, 0.00, F))
-setkey(prices, ID, "date")
-prices <- rbind(prices, list(366870, anydate("2018-02-20"), 19.99, 0.00, F))
-prices <- rbind(prices, list(583760, anydate("2017-08-22"), 0.99, 0.00, F))
-prices <- rbind(prices, list(586090, anydate("2017-12-15"), 0.99, 0.00, F))
-prices <- rbind(prices, list(595440, anydate("2018-02-19"), 0.99, 0.00, F))
-prices <- rbind(prices, list(595440, anydate("2018-04-16"), 0.49, 0.51, T))
-prices <- rbind(prices, list(601530, anydate("2017-10-02"), 5.99, 0.00, F))
-prices <- rbind(prices, list(665090, anydate("2017-10-02"), 9.99, 0.00, F))
-prices <- rbind(prices, list(708580, anydate("2018-11-27"), 4.99, 0.00, F))
-prices <- rbind(prices, list(712840, anydate("2017-10-26"), 1.99, 0.00, F))
-prices <- rbind(prices, list(712840, anydate("2017-11-22"), 1.19, 0.4, T))
-prices <- rbind(prices, list(429660, anydate("2018-11-05"), 49.99, 0.0, F))
-prices <- rbind(prices, list(429660, anydate("2018-11-21"), 12.49, 0.75, T))
-prices <- rbind(prices, list(462770, anydate("2017-10-02"), 19.99, 0.0, F))
+prices <- rbind(prices, list(626640, ("2017-10-26"), 6.99, 0.00, F))
+prices <- rbind(prices, list(366870, ("2018-02-20"), 19.99, 0.00, F))
+prices <- rbind(prices, list(583760, ("2017-08-22"), 0.99, 0.00, F))
+prices <- rbind(prices, list(586090, ("2017-12-15"), 0.99, 0.00, F))
+prices <- rbind(prices, list(595440, ("2018-02-19"), 0.99, 0.00, F))
+prices <- rbind(prices, list(595440, ("2018-04-16"), 0.49, 0.51, T))
+prices <- rbind(prices, list(601530, ("2017-10-02"), 5.99, 0.00, F))
+prices <- rbind(prices, list(665090, ("2017-10-02"), 9.99, 0.00, F))
+prices <- rbind(prices, list(708580, ("2018-11-27"), 4.99, 0.00, F))
+prices <- rbind(prices, list(712840, ("2017-10-26"), 1.99, 0.00, F))
+prices <- rbind(prices, list(712840, ("2017-11-22"), 1.19, 0.4, T))
+prices <- rbind(prices, list(429660, ("2018-11-05"), 49.99, 0.0, F))
+prices <- rbind(prices, list(429660, ("2018-11-21"), 12.49, 0.75, T))
+prices <- rbind(prices, list(462770, ("2017-10-02"), 19.99, 0.0, F))
 prices[ID==485030 & date=="2018-11-27", price := 19.99]
 prices[ID==485030 & date=="2018-11-27", discount := 0.0]
 prices[ID==485030 & date=="2018-11-27", discNew := F]
-prices <- rbind(prices, list(543870, anydate("2018-11-05"), 19.99, 0.0, F))
-prices <- rbind(prices, list(543870, anydate("2018-11-21"), 9.99, 0.5, T))
-prices <- rbind(prices, list(588730, anydate("2018-11-27"), 5.99, 0.0, F))
-prices <- rbind(prices, list(618970, anydate("2018-11-27"), 34.99, 0.0, F))
-prices <- rbind(prices, list(634160, anydate("2018-11-27"), 14.99, 0.0, F))
+prices <- rbind(prices, list(543870, ("2018-11-05"), 19.99, 0.0, F))
+prices <- rbind(prices, list(543870, ("2018-11-21"), 9.99, 0.5, T))
+prices <- rbind(prices, list(588730, ("2018-11-27"), 5.99, 0.0, F))
+prices <- rbind(prices, list(618970, ("2018-11-27"), 34.99, 0.0, F))
+prices <- rbind(prices, list(634160, ("2018-11-27"), 14.99, 0.0, F))
+
+prices[, date := anydate(date)]
 setkey(prices, ID, "date")
 
 
 # Player Data
+# there is an issue with class attributes of the date column, so I convert it
+# to String to be able to add some new rows
 load(here("Build", "Temp", "playersSample.Rda"))
 players[, twitch := NULL]
+players[, date2 := toString(date), by = c("ID", "date")]
+players[, date:=date2][, date2:=NULL][,date := anydate(date)]
 
 # The resulting panel is a panel of single player non F2P games with the first date
 # being the (well-behaved) release date
@@ -201,8 +215,12 @@ panel <- panel[t < t.max, ]
 # panel <- panel[t >= one.year + one.year]
 pan.ids <- panel[, .(m.age=max(age, na.rm = T)), by = ID][m.age>=min.age, ID]
 panel <- panel[ID %in% pan.ids]
-info <- info[ID %in% panel[, unique(ID)], ]
 setkey(panel, ID, t)
+
+# recalculate maximum player counts
+info <- info[ID %in% panel[, unique(ID)], ]
+info <- merge(info, panel[, .(maxPlayers2=max(number)), by = ID], by = "ID")
+info[, maxPlayers := maxPlayers2][, maxPlayers2:=NULL]
 
 #number of games
 n <- info[, .N]
@@ -227,13 +245,15 @@ panel[, score:=score/10]
 
 # score and lrevs are really score and lrevs times (1-noScore).
 panel[noScore==T, score := 0]
-panel[noScore==T, reviews := 0]
+# panel[noScore==T, reviews := 0]
 panel[, lrev := log(reviews+1)]
 panel[, price := round(price/(price[1]/(1-discount[1])), digits = 2), by=ID]
-panel[, numberLag := numberLag/(max(number)), by = ID]
-panel[, number := number/(max(number)), by = ID]
 # price for the game that has a 100% discount in the data
 panel[is.na(price), price := 1.0]
+# weighting by the max number of players for each game
+panel[, numberLag := numberLag/(max(number)), by = ID]
+panel[, number := number/(max(number)), by = ID]
+
 
 panel <- merge(panel, info[, .(ID, id)], by = "ID")
 panel <- dummy_cols(panel, select_columns = "day")
