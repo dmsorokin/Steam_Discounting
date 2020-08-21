@@ -41,8 +41,8 @@ load(here("Build", "Temp", "pricesSample.Rda"))
 prices[, date2 := toString(date), by = c("ID", "date")]
 prices <- prices[, .(ID = ID, date = date2, price = price, discount = discount)]
 prices[, discNew := discount > 0]
-# some manual corrections of scraping mistakes. These mistakes seem to steamDB's,
-# not mine
+# some manual corrections of scraping/data processing mistakes that I discovered very late. 
+# These should really be in the BrushUpCleanData.R, but it is easier to correct them here.
 prices <- rbind(prices, list(626640, ("2017-10-26"), 6.99, 0.00, F))
 prices <- rbind(prices, list(366870, ("2018-02-20"), 19.99, 0.00, F))
 prices <- rbind(prices, list(583760, ("2017-08-22"), 0.99, 0.00, F))
@@ -65,7 +65,7 @@ prices <- rbind(prices, list(543870, ("2018-11-21"), 9.99, 0.5, T))
 prices <- rbind(prices, list(588730, ("2018-11-27"), 5.99, 0.0, F))
 prices <- rbind(prices, list(618970, ("2018-11-27"), 34.99, 0.0, F))
 prices <- rbind(prices, list(634160, ("2018-11-27"), 14.99, 0.0, F))
-
+prices <- rbind(prices, list(841980, "2018-07-06", 9.99, 0.0, F))
 prices[, date := anydate(date)]
 setkey(prices, ID, "date")
 
