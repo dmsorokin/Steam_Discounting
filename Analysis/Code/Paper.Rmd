@@ -184,7 +184,7 @@ p2 <- ggplot(data = panel[age==180, .(x = log(reviews))]) +
 ggarrange(p1, p2, ncol = 2, nrow = 1, align = "h")
 ```
 
-```{r sample-size-hist-vert, include=FALSE}
+```{r sample-size-hist-vert, include=FALSE, fig_height = 5}
 # for beamer
 ggarrange(p1, p2, ncol = 1, nrow = 2, align = "h")
 ```
@@ -192,31 +192,10 @@ ggarrange(p1, p2, ncol = 1, nrow = 2, align = "h")
 As the goal of the paper is to understand if firms use pricing tools in order to improve their online reputation, a detailed overview of pricing and review variables is important. A representative game in the sample never changes its price, but instead occasionally goes on discounts, slowly increasing their magnitude as the game ages. There are
 `r panel[discount==F, diff(price), by = ID][V1>0, .N]` incidents of price change in the data, compared to 
 `r panel[discNew==T, .N]` discounts. Steam has a number of rules that regulate price promotions on its platform. A game can have a launch discount, but, otherwise, it has to wait for two months since the release before changing its price or giving a discount. A game can not go on discounts too frequently, and has to wait between four to six weeks
-after a price promotion to be able to run a new one. The duration of a custom discount is restricted to be at least one full day, and at most two weeks. Besides these custom discounts, that are fully managed by the firms, Steam has a series of curated discounts, when the platform invites selected titles to go on a discount. As @steamDiscounting explains it, “while there aren't strict rules, as a base guideline we tend to focus on the top 10-20% selling games on Steam that are positively reviewed and have otherwise proven to be successful”. Curated promotions are featured prominently on Steam's main page, and, arguably, lead to more visibility and sales for the participating titles than custom discounts, which also contribute to visibility, but typically do not get the front-page promotional slots. An important type of curated discounts are the so-called “Seasonal Sales”--big platform-wide events that take place about four times a year around major holidays. Figure \ref{seasonalSales} shows that the biggest sales take place in Winter (Christmas and New Year) and Summer (July 4), but there are also significant discounts in the Fall (Halloween and Thanksgiving). Around `r  round(panel[discSeason==T & discNew == T, .N]/panel[discNew==T, .N]*100)`% of discounts in the sample go live during a Seasonal Sale. Thus, firms have significant agency when it comes to running price promotions, but platform regulations and platform-wide discounts are important determinants of firms' decision to discount.
-
-```{r seasonal-sales, fig.cap='\\label{seasonalSales} Fraction of Games in the Sample Running a Promotion.'}
-months1 <- c(-1, 30, 58, 89, 119, 150, 180, 211, 242, 272, 303, 333) + 1
-months2 <- c(333 + 32 + months1, 699 + 31)
-ggplot(data = panel[, .(y=sum(discount > 0)/(.N)), by = t]) +
-  # ggtitle() +
-  geom_line(aes(x = t, y = y),
-            color = my.colors[1],
-            size = 1) +
-  scale_x_continuous(name = NULL,
-                     breaks = c(months1, months2)[seq(1,25,3)], 
-                     labels = months(getDate(c(months1, months2))[seq(1,25,3)], 
-                                     abbreviate=T),
-                     minor_breaks = NULL) +
-  scale_y_continuous(name = "Fraction of Games",
-                     minor_breaks = NULL)  +
-  my.theme(leg.x = 0.25, leg.y = 0.9)
-rm(months1, months2)
-```
+after a price promotion to be able to run a new one. The duration of a custom discount is restricted to be at least one full day, and at most two weeks. Besides these custom discounts, that are fully managed by the firms, Steam has a series of curated discounts, when the platform invites selected titles to go on a discount. As @steamDiscounting explains it, “while there aren't strict rules, as a base guideline we tend to focus on the top 10-20% selling games on Steam that are positively reviewed and have otherwise proven to be successful”. Curated promotions are featured prominently on Steam's main page, and, arguably, lead to more visibility and sales for the participating titles than custom discounts, which also contribute to visibility, but typically do not get the front-page promotional slots. An important type of curated discounts are the so-called “Seasonal Sales”--big platform-wide events that take place about four times a year around major holidays. Figure \ref{seasonalSalesPeriods} (in the Appendix) shows that the biggest sales take place in Winter (Christmas and New Year) and Summer (July 4), but there are also significant discounts in the Fall (Halloween and Thanksgiving). Around `r  round(panel[discSeason==T & discNew == T, .N]/panel[discNew==T, .N]*100)`% of discounts in the sample go live during a Seasonal Sale. Thus, firms have significant agency when it comes to running price promotions, but platform regulations and platform-wide discounts are important determinants of firms' decision to discount.
 
 
-The path of the review score of a typical game is quite different from its price history, in that the review score tends to settle quickly. Recall that the review score is just the fraction of the positive reviews among all reviews, so the law of large number implies that this ratio crystallizes as more reviews flow in. Second plot in Figure \ref{reviewDescriptivePlots} shows that games tend to receive half of the reviews they have at the age of 180 days in their first month after the release. On average across games, the standard deviation of the review score (out of one hundred) is just `r round(panel[, sd(score, na.rm=T), by = ID][, mean(V1, na.rm = T)], 2)`, with a split of `r round(panel[age <= 30, sd(score, na.rm=T), by = ID][, mean(V1, na.rm = T)], 2)` in the first thirty days and `r round(panel[age > 30, sd(score, na.rm=T), by = ID][, mean(V1, na.rm = T)], 2)` after that. The score is only assigned once the game reaches 10 reviews, and once can see that 10 reviews is enough on average keep the score stable. The distribution of games by bins at the age of 180 days, depicted in Figure \ref{reviewDescriptivePlots}, is, then, representative of the situation at other ages.
-
-```{r review-descriptive-plots, fig.width = 6.5, fig.cap='\\label{reviewDescriptivePlots} Distribution of Games by Review Bins and the CDF\'s of Review Arrival Times by Quintiles at 180 Days.'}
+```{r review-descriptive-plots, fig.cap='\\label{reviewDescriptivePlots} Distribution of Games by Review Bins and the CDF\'s of Review Arrival Times by Quintiles at 180 Days.'}
 # Histogram of the bin distribution at the age of 180 days
 labls <- c("No Score", "Negative", "Mixed", "M. Positive", "Positive", "V. Positive", "Ov. Positive")
 short.labls <- c("N/S", "Neg", "Mix", "M.Pos", "Pos", "V.Pos", "Ov.Pos")
@@ -284,6 +263,9 @@ rm(arrival)
 
 ggarrange(p1, p2, ncol = 2, nrow = 1, align = "h")
 ```
+
+
+The path of the review score of a typical game is quite different from its price history, in that the review score tends to settle quickly. Recall that the review score is just the fraction of the positive reviews among all reviews, so the law of large number implies that this ratio crystallizes as more reviews flow in. Second plot in Figure \ref{reviewDescriptivePlots} shows that games tend to receive half of the reviews they have at the age of 180 days in their first month after the release. On average across games, the standard deviation of the review score (out of one hundred) is just `r round(panel[, sd(score, na.rm=T), by = ID][, mean(V1, na.rm = T)], 2)`, with a split of `r round(panel[age <= 30, sd(score, na.rm=T), by = ID][, mean(V1, na.rm = T)], 2)` in the first thirty days and `r round(panel[age > 30, sd(score, na.rm=T), by = ID][, mean(V1, na.rm = T)], 2)` after that. The score is only assigned once the game reaches 10 reviews, and one can see that 10 reviews is enough, on average, to keep the score stable. The distribution of games by bins at the age of 180 days, depicted in Figure \ref{reviewDescriptivePlots}, is, then, representative of the situation at other ages.
 
 
 ```{r}
@@ -382,25 +364,6 @@ stargazer(
 ```
 
 
-```{r transition-discount-plot, fig.cap='\\label{discountsTransitions} Discounting By Games Around The Transition.'}
-ggplot(data=transPanel[, .(x=tToTransit, y=100*(discount > 0),
-                           g=factor(goodTr))],
-       aes(x=x, y=y)) +
-   geom_vline(xintercept = 0, linetype = "longdash", size = 0.2) +
-   aes(color=g) + 
-   stat_summary(fun.data = mean_se,
-               size=0.4) +
-   geom_smooth(size=0.6, se = F) +
-   scale_x_continuous(name = "Days After Transition",
-                     breaks = seq(-14, 14, 2),
-                     minor_breaks = NULL) +
-   scale_y_continuous(name = "% Of Games Discounting", ) +
-   scale_color_manual(labels = c("Bad", "Good"),
-                      name = "Transition",
-                      values = my.colors) +
-   my.theme(leg.x = 0.78, leg.y = 0.82)
-```
-
 ```{r cache=F}
 # These are the tricks that I used in the Julia code, and I reuse them here for 
 # consistency. Now that describing the sample is done, these changes will facilitate
@@ -421,8 +384,8 @@ panel[is.na(price), price := 1.0]
 
 
 ```{r, include=F}
-reg1 <- lm(I(discount>0) ~  tToTransitNeg + tToTransitPos + 
-             noScore + negative + mPositive + realPositive +
+reg1 <- lm(I(discount>0) ~  tToTransitNeg + tToTransitPos +
+             negative + mPositive + realPositive +
              vPositive + ovPositive + score +
              log(reviews+1) + age + poly(tWODisc, degree = 2) + 
              day + week, data = transPanel)
@@ -437,7 +400,7 @@ star.out.transitions <- stargazer(reg1,
           se=list(se1),
           #column.labels=c(),
           dep.var.labels = c("Discount Probability"),
-          covariate.labels = c("Days to Transition", "Days After Transition", "No Score", 
+          covariate.labels = c("Days to Transition", "Days After Transition",
                                "Negative", "Mostly Positive", "Positive", "Very Positive",
                                "Ov. Positive", "Score", "Log Reviews", "Age", "Const"),
           model.numbers = F,
@@ -448,9 +411,29 @@ star.out.transitions <- stargazer(reg1,
 
 
 # Descriptive Evidence
+\label{descriptiveEvidence}
 
 In this section I present evidence that firms use discounting to manage their online reputation, in particular, by running price promotions when they are close to improving their review label. For now, let us resort to a very simplistic story of why a firm would be interested in doing that. Assume that discounts increase the inflow customers, and that more customers means more reviews. Also, take for granted, for now, that better review labels improve sales. Then, if a firm is one positive review away from upgrading its review label, it might be tempted to speed things up by giving a discount. Similarly, a product that is close to sliding into a worse review bin, could be tempted to run a price promotion, in order to avoid a slump in its reviews. I will address this story in more detail in the discussion part of this section, but for now I turn attention to simply establishing that this sort of behavior indeed takes place in the sample.
 
+```{r transition-discount-plot, fig.cap='\\label{discountsTransitions} Discounting By Games Around The Transition.'}
+ggplot(data=transPanel[, .(x=tToTransit, y=100*(discount > 0),
+                           g=factor(goodTr))],
+       aes(x=x, y=y)) +
+   geom_vline(xintercept = 0, linetype = "longdash", size = 0.2) +
+   aes(color=g) + 
+   stat_summary(fun.data = mean_se,
+               size=0.4) +
+   geom_smooth(size=0.6, se = F) +
+   scale_x_continuous(name = "Days After Transition",
+                     breaks = seq(-14, 14, 2),
+                     minor_breaks = NULL) +
+   scale_y_continuous(name = "% Of Games Discounting", ) +
+   scale_color_manual(labels = c("Bad", "Good"),
+                      name = "Transition",
+                      values = my.colors) +
+   my.theme(leg.x = 0.78, leg.y = 0.82)
+rm(transPanel, transitions)
+```
 
 The departing point of the analysis is Figure \ref{discountsTransitions}, which shows that transitions between review labels are very often preceded by discounts. The graph shows that two weeks prior to a transition only 15% of games were on a discount, a number close to the sample average, but that this number more than doubles to around 35% one day before the label change. Regression analysis controlling for review label, number of reviews, age, day of the week and week time effects, as well as time since the previous discount, confirms that the association depicted in Figure \ref{discountsTransitions} is robust (see Table \ref{transitionReg} in the Appendix). A game is approximately `r round(reg1$coefficients[2]*14*100)` pp more likely to be on a discount on the day of the transition than it is two weeks prior to it, and it is `r round(-reg1$coefficients[3]*14*100)` pp less likely to be on a discount two weeks following the transition. Given that the probability for a game to be on a discount on a random day is `r round(panel[, mean((discount > 0), na.rm=T)]*100)`% in the sample, these effects amount to `r round(100*(reg1$coefficients[2]/panel[, mean((discount > 0), na.rm=T)]))`% and `r round(100*(-reg1$coefficients[3]/panel[, mean((discount > 0), na.rm=T)]))`% changes in the daily probability of a discount, which is quite sizable.
 
@@ -575,7 +558,7 @@ As the example above shows, it is impossible to consider proximity to a positive
 disc_{it} = \beta^+ T_{it}^+ + \beta^- T_{it}^- + X_{it}\beta + f_i + \tau_t + \varepsilon_{it},
 \end{equation}
 
-\noindent $disc_{it} = \mathds{1}\{Discount_{it} > 0\}$ is a dummy measuring if the game is on a discount or not, $X_{it}$ is a set of control variables that includes log proximities to positive and negative transitions, log review count, review bin dummies, and age; $f_i$ is a set of game-level fixed effects, and $\tau_t$ is a set of day of the week effects and sample week time effects. These time effects are especially important to include in the regressions with discounting variables on the left hand side, because Steam's curated discounts all start on predetermined days of the week, and seasonal sales affect a big number of games at the same time, as depicted in Figure \ref{seasonalSales}. We expect $\beta^+$ to be positive, but, when it comes to $\beta^-$, any sign could be rationalized. A positive sign on  $\beta^-$ would serve as evidence that firms use discounting in order to escape from slumps in their reviews bins, while a negative sign would indicate that, on the contrary, firms on the verge of a bad transition become more prudent with their discounts, trying to not instigate extra purchasing/reviewing activity.
+\noindent $disc_{it} = \mathds{1}\{Discount_{it} > 0\}$ is a dummy measuring if the game is on a discount or not, $X_{it}$ is a set of control variables that includes log proximities to positive and negative transitions, log review count, review bin dummies, and age; $f_i$ is a set of game-level fixed effects, and $\tau_t$ is a set of day of the week effects and sample week time effects. These time effects are especially important to include in the regressions with discounting variables on the left hand side, because Steam's curated discounts all start on predetermined days of the week, and seasonal sales affect a big number of games at the same time, as depicted in Figure \ref{seasonalSalesPeriods}. We expect $\beta^+$ to be positive, but, when it comes to $\beta^-$, any sign could be rationalized. A positive sign on  $\beta^-$ would serve as evidence that firms use discounting in order to escape from slumps in their reviews bins, while a negative sign would indicate that, on the contrary, firms on the verge of a bad transition become more prudent with their discounts, trying to not instigate extra purchasing/reviewing activity.
 
 ```{r results = 'asis'}
 cat(star_insert_row(star.out,
@@ -603,7 +586,7 @@ The results I presented in this section, therefore, lead to the following hypoth
 
 # Empirical Model
 
-
+\textcolor{red}{Write a small introduction here.}
 
 ## Setup
 
@@ -685,7 +668,7 @@ First, I believe that standard concerns about the endogeneity of prices are not 
 
 My second point is that, even though unobserved marketing interventions that are coupled with price promotions, would,  undoubtedly, be an issue, this problem could be addressed with some extra data collection. One way to proceed would be to study if such coupled promotions in fact do take place. In particular, one could collect data on YouTube queries mentioning the games in the sample, and use spikes in such queries as a proxy for unobserved marketing campaigns.
 
-A deeper problem for identifying the price elasticity of demand lies in defining precisely the elasticity of interest. A video game is a durable good, and some consumers could be purchasing it strategically, thinking about the probability and depth of discounts that they could get in the near future. A discount that is announced a week in advance will appear to have a strong effect on sales, but only because consumers would abstain from purchasing the game throughout that week. For studying counterfactual price policies one would need to specify a more complicated model of forward-looking consumers, and estimate the fundamentals of their behavior. A related problem is the importance of salience in a marketplace that has many thousands of products. Any price elasticity estimated relies on Steam keeping its algorithms unchanged. A game can give a 99% discount, but the quantity demanded will not change much if that promotion happens to not be reflected in Steam's system. This has implications, for instance, for picking good instruments for prices. Curated discounts created and managed by Steam are suggested to firms, and not chosen by them. In principle, such price changes could be exogenous to daily demand conditions. However, they could hardly be used as instruments for the price, because they also bring an immense boost in visibility, by the virtue of occupying the prime store main page space.
+A deeper problem for identifying the price elasticity of demand lies in defining precisely the elasticity of interest. A video game is a durable good, and some consumers could be purchasing it strategically, thinking about the probability and depth of discounts that they could get in the near future.In particular, Steam allows users to add any game to their wishlist, which means that they would be notified about promotions affecting that game. Later in the results section we will see that the lion's share of sales on a discount take place on the first day of the discount, which is consistent with users waiting for a discount and buying the game when the discount goes live. For studying counterfactual price policies one would need to specify a more complicated model of forward-looking consumers, and estimate the fundamentals of their behavior. A related problem is the importance of salience in a marketplace that has many thousands of products. Any price elasticity estimated relies on Steam keeping its algorithms unchanged. A game can give a 99% discount, but the quantity demanded will not change much if that promotion happens to not be reflected in Steam's system. This has implications, for instance, for picking good instruments for prices. Curated discounts created and managed by Steam are suggested to firms, and not chosen by them. In principle, such price changes could be exogenous to daily demand conditions. However, they could hardly be used as instruments for the price, because they also bring an immense boost in visibility, by the virtue of occupying the prime store main page space.
 
 ### Review Parameters
 
@@ -736,7 +719,7 @@ A_{it} = \psi_i A_{it-1} + \lambda_i(1+x'_{it}\beta) + u_{it},
 $$
 \noindent would be price, review label, score, log reviews, age, and a set of day of the week and sample week time effects. However, this proved to be computationally infeasible. Even though I manage to concentrate out $2n=$ `r 2*info[, .N]` game-specific parameters $(\lambda_i, \psi_i)$ from the numerical optimization routine, estimation of $\beta$ still relies on minimizing the sum of squared residuals in a $\dim(\beta)$-dimensional space. The routine would fail to converge to a solution within reasonable boundaries, so I had to alter the specification.
 
-The week effects contribute the most to the dimensionality of the problem, as there are `r panel[, length(unique(week))]` weeks in the sample. The reason to include these week effects is to account for platform-wide shocks. The biggest shocks shared by games on Steam are Seasonal Sales. These sales take place around major holidays, and, thus, blend together the increased platform-wide demand due to holidays with the higher quantity demanded caused by the plethora of price promotions (depicted in Figure \ref{seasonalSales}). To capture these periods in a parsimonious way, I calculated the average daily discount in the sample, and labeled the days when the average discount exceeded 20\%. Figure \ref{seasonalSalesPeriods} in the Appendix shows that my definition tracks closely the spikes in the aggregate discounting behavior. I also tried using the raw value of the average discount in the sample, but the results remained the same.
+The week effects contribute the most to the dimensionality of the problem, as there are `r panel[, length(unique(week))]` weeks in the sample. The reason to include these week effects is to account for platform-wide shocks. The biggest shocks shared by games on Steam are Seasonal Sales. These sales take place around major holidays, and, thus, blend together the increased platform-wide demand due to holidays with the higher quantity demanded caused by the plethora of price promotions (depicted in Figure \ref{seasonalSalesPeriods}). To capture these periods in a parsimonious way, I calculated the average daily discount in the sample, and labeled the days when the average discount exceeded 20\%. Figure \ref{seasonalSalesPeriods} in the Appendix shows that my definition tracks closely the spikes in the aggregate discounting behavior. I also tried using the raw value of the average discount in the sample, but the results remained the same.
 
 The substitution of the week dummies with a Seasonal Sale dummy proved to be sufficient for convergence. I mentioned in the Identification section that a more simplistic, yet more tractable, alternative to estimating the non-linear model (\ref{arrivalReg}) is given by equation (\ref{logReg})
 $$
@@ -801,14 +784,13 @@ class(table) <- c("character", "texregTable")
 table
 ```
 
-Column (1) in Table \ref{demandEstimates} presents the estimates of the demand parameters in (\ref{arrivalReg}), and column (2) presents the results of estimating the log-regression (\ref{logReg}) with the same set of covariates; finally, column (3) reports the results of estimating the log-regression with the ideal set of covariates (using week effects instead of the Seasonal Sale dummy). It is readily checked that the difference between the preferred log-regression in column 3 and its restricted analog in column 2 is very small. The $R^2$ statistic confirms that week effects do not contribute much to explaining the data, and I conclude that the Seasonal Sale dummy captures the main time-specific shocks well. Thus, it is reasonable to say that the omission of the week effects from the nonlinear Model (\ref{arrivalReg}) comes at little cost.  Now we can concentrate on the estimates of the demand parameters in (\ref{arrivalReg}), presented in the first column, and compare them with the heuristic regression results in the second or third column.
+Column (1) in Table \ref{demandEstimates} presents the estimates of the demand parameters in (\ref{arrivalReg}), and column (2) presents the results of estimating the log-regression (\ref{logReg}) with the same set of covariates; finally, column (3) reports the results of estimating the log-regression with the ideal set of covariates (using week effects instead of the Seasonal Sale dummy). It is readily checked that the difference between the preferred log-regression in column (3) and its restricted analog in column (2) is very small. The $R^2$ statistic confirms that week effects do not contribute much to explaining the data, and I conclude that the Seasonal Sale dummy captures the main time-specific shocks well. Thus, it is reasonable to say that the omission of the week effects from the nonlinear Model (\ref{arrivalReg}) comes at little cost.  Now we can concentrate on the estimates of the demand parameters in (\ref{arrivalReg}), presented in the first column, and compare them with the heuristic regression results in the second or third column.
 
 The review labels' semi-elasticities are fairly similar across the specifications. All specificaitons exhibit a monotonicity in the effects of different review tiers on sales. The "Negative" label is at most as good as "Mixed" (the reference group), with the log-regression results finding a penalty of `r round(-100*reg1$coefficients[6])`% that the "Negative" label entails; the "Mostly Positive" bin increseases sales by `r round(beta.hat[8]*100)`-`r round(100*reg2$coefficients[7])`% compared to the "Mixed" bin. At the top end we see that the "Overwhelmingly Positive" label increases demand by `r round(100*reg2$coefficients[10])`-`r round(beta.hat[11]*100)`%. These magnitudes are economically sizable and reasonable. These results close the gap that my analysis has exhibited so far, and confirms that good reviews are important for sales in the Steam marketplace.  
 
-However, columns 1 and 2-3 differ substantially in the estimates of the effect of having no score on sales\footnote{In order to have both the score variable $\in [0,100]$ and a dummy for the "No Score" label I set the former to be equal to 0 when a game has no review label (which happens when it has less than 10 reviews). Thus, the score variable really measures the effect of score once the score is defined.}. While Model (\ref{arrivalReg}) suggests that having no score is associated with a `r -round(beta.hat[6]*100)`% slower customer arrival than having the “Mixed” review label, its simplified log-regression analogs find the opposite effect of a having `r round(reg1$coefficients[5]*100)`-`r round(reg2$coefficients[4]*100)`% bonus associated with having not enough reviews. The latter effect can not possibly be taken at face value, given that the most exlusive review label "Overwhelmingly Positive" only increases sales by  at most `r round(beta.hat[11]*100)`%. It would be possible to explain such large estimates by high levels of demand  when the game is young and is likely to have less than 10 reviews, but I control for being “young” by including the dummy for being less than 14 days of age. Thus, the coefficient on “No Score” is identified by games that exit this bin later than their first two weeks. Such games constitute `r round(100*panel[noScore==T & age>=14, length(unique(ID))]/info[,.N])`% of the sample, and could be different somehow from the rest of the games. In any case, it is hard to explain such a big effect. One explanation that works is that the log-regression simplification (\ref{logReg}) is misguided, and that one should only trust the coefficients from the structural model of the demand process (\ref{arrivalReg}). This latter model finds a penalty of `r -round(beta.hat[6]*100)`% associated with  having no score, which sounds much more reasonable. A negative effect could be attributed to customers' reluctance to purchase products of unknown quality. If that is the case, this finding suggests a pretty serious cost of asymetric information in this market. The same column,
+However, columns (1) and (2)-(3) differ substantially in the estimates of the effect of having no score on sales\footnote{In order to have both the score variable $\in [0,100]$ and a dummy for the "No Score" label I set the former to be equal to 0 when a game has no review label (which happens when it has less than 10 reviews). Thus, the score variable really measures the effect of score once the score is defined.}. While Model (\ref{arrivalReg}) suggests that having no score is associated with a `r -round(beta.hat[6]*100)`% slower customer arrival than having the “Mixed” review label, its simplified log-regression analogs find the opposite effect of a having `r round(reg1$coefficients[5]*100)`-`r round(reg2$coefficients[4]*100)`% bonus associated with having not enough reviews. The latter effect can not possibly be taken at face value, given that the most exlusive review label "Overwhelmingly Positive" only increases sales by at most `r round(beta.hat[11]*100)`% compared to the baseline. It would be possible to explain such large estimates by high levels of demand  when the game is young and is likely to have less than 10 reviews, but I control for being “young” by including the dummy for being less than 14 days of age. Thus, the coefficient on “No Score” is identified by games that exit this bin later than their first two weeks. Such games constitute `r round(100*panel[noScore==T & age>=14, length(unique(ID))]/info[,.N])`% of the sample, and are probably different from the rest of the games. However, it is still hard to come up with omitted factors that would explain the positive effect of “No Score” on sales found in columns (2)-(3). One explanation that works is that the log-regression simplification (\ref{logReg}) is simply misguided, and that one should only trust the coefficients from the structural model of the demand process (\ref{arrivalReg}). This latter model finds a penalty of `r -round(beta.hat[6]*100)`% associated with  having no score, which sounds much more reasonable. A negative effect could be attributed to customers' reluctance to purchase products of unknown quality. If that is the case, this finding suggests a pretty serious cost of asymetric information in this market. 
 
-The second imprortant set of variables are the price variables. First row of Table \ref{demandEstimates} suggests that the price elasticity of demand of very low, between  `r round(-reg1$coefficients[2],2)` and `r round(-beta.hat[1],2)` in absolute value. This magnitude is very similar to the price elasticity that @ReimersWaldfogel20 finds studying reviews for books on Amazon.com. That paper argues that Amazon has been known to prioritize growth over profit, charging low prices and operating on the inelastic part of the demand curve. However, on Steam individual firms choose which prices to charge for their product, and they should have a stronger preference for profit than an entity that is a marketplace, rather than a seller. The situation becomes more clear after examining the coefficient on “New Discount”, an indicator variable for the first day after the discount\footnote{I found the effect to be stronger if a one day lag is allowed}. On average, a discount leads to a `r round(beta.hat[2]*100)`-`r round(reg2$coefficients[3]*100)`% spike in sales upon introduction. An average discount in the sample is `r round(panel[discount>0, mean(discount)]*100)`%, meaning that, based on the estimates in column 1, the effective change in quantity sold upon the introduction of the discount is `r round(beta.hat[2]*100)`%$+$`r round(-beta.hat[1]*round(panel[discount>0, mean(discount)]*100))`$%=$`r round(beta.hat[2]*100) + round(-beta.hat[1]*round(panel[discount>0, mean(discount)]*100))`%, with the effective elasticity of `r round((round(beta.hat[2]*100) + round(-beta.hat[1]*round(panel[discount>0, mean(discount)]*100)))/round(panel[discount>0, mean(discount)]*100),2)`. This number looks more reasonable, especially given that the products I study have a zero marginal cost of production, and in a static world firms would set prices at which the demand for their products would be unit-elastic. As I have mentioned in the Identification section, the the durable good nature of video games means that forward-looking behavior by the customers could lead to diff
-
+The second imprortant set of variables are the price variables. First row of Table \ref{demandEstimates} suggests that the price elasticity of demand of very low, between  `r round(-reg1$coefficients[2],2)` and `r round(-beta.hat[1],2)` in absolute value. This magnitude is very similar to the price elasticity that @ReimersWaldfogel20 finds studying reviews for books on Amazon.com. That paper argues that Amazon has been known to prioritize growth over profit, charging low prices and operating on the inelastic part of the demand curve. However, on Steam individual firms choose which prices to charge for their product, and they should have a stronger preference for profit than an entity that is a marketplace, rather than a seller. The situation becomes more clear after examining the coefficient on “New Discount”, an indicator variable for the first day after the discount\footnote{I found the effect to be stronger if a one day lag is allowed}. On average, a discount leads to a `r round(beta.hat[2]*100)`-`r round(reg2$coefficients[3]*100)`% spike in sales upon introduction. An average discount in the sample is `r round(panel[discount>0, mean(discount)]*100)`%, meaning that, based on the estimates in column 1, the effective change in quantity sold upon the introduction of the discount is `r round(beta.hat[2]*100)`% $+$ `r round(-beta.hat[1]*round(panel[discount>0, mean(discount)]*100))`% $=$ `r round(beta.hat[2]*100) + round(-beta.hat[1]*round(panel[discount>0, mean(discount)]*100))`%, with the implied elasticity of `r round((round(beta.hat[2]*100) + round(-beta.hat[1]*round(panel[discount>0, mean(discount)]*100)))/round(panel[discount>0, mean(discount)]*100),2)`. This number looks more reasonable, especially given that the products I study have a zero marginal cost of production, and in a static world firms would set prices at which the demand for their products would be unit-elastic. As I have mentioned in the Identification section, the durable good nature of video games means that forward-looking behavior by consumers could lead to different price elasticities for short-lived promotions and long-term price changes. 
 
 
 ```{r fig.cap='\\label{psiLambdaDist} Distribtuions of the continuation probability $\\psi_i$ and average sales $\\bar{\\lambda}_{i}$.'}
@@ -849,10 +831,25 @@ p2 <- ggplot(data = info[, .(x = log(mlambda))]) +
                      minor_breaks = NULL) +
   scale_y_continuous(name = NULL,
                      minor_breaks = NULL) +
-  my.theme()
+  my.theme() +
+  coord_cartesian(xlim = c(-2, 6))
 
 ggarrange(p1, p2, nrow=1, align = "h")
 ```
+
+The second set of demand parameters that I estimate are the game-specific customer arrival 
+rates $\lambda_i$ and the probabilities $\psi_i$ with which active players of game $i$
+continue playing the game. For the ease of interpretation, I present the estimates of 
+$\bar \lambda_{i} := \lambda_i(1+\mathbb{E}[x_{it}]'\beta)$, the average number of sales
+for game $i$ (recall that I can only estimate the part of sales that contributes to the gaming
+activity during peak times). Estimated distributions of these parameters are presented in 
+Figure \ref{psiLambdaDist}. The model produces very well-behaved estimates without any constraints
+imposed in the estimation: there are just
+`r info[psi > 1 | psi <0, .N]` games with estimated values of $\psi_i$ outside of the $[0,1]$
+interval, and only `r round(panel[lambda < 0, .N]/panel[, .N]*100)`% of the observations in 
+the sample predict negative sales. Quite remarkably, the average continuation probability, 
+`r info[, round(mean(psi), 2)]`, is very close to the estimates of its log-regression counterpart 
+in Table \ref{demandEstimates}, line "Lag Players".
 
 ```{r lambda-psi-beamer, fig.width = 8, fig.height = 6, include = FALSE}
 ggarrange(p1, p2, nrow=2, align = "v")
@@ -878,6 +875,7 @@ revs <- revs[, .(rhoPosD = sum(disc*l) / sum(disc*lam),
               by = ID]
 revs <- revs[!is.na(rhoPosD)]
 
+# calculate s.e.
 id.matrix <- matrix(c(1,0,0,1), nrow=2)
 for (id in revs[, ID]){
    sums <- panel[ID==id, .(disc, lam)][, sum(lam), by = disc]
@@ -905,7 +903,6 @@ rm(Hpos, Hneg, HnegInv, HposInv)
 ```
 
 
-The main parameters of interest in this section are $(\rho_{1i}^+, \rho_{1i}^-)$, which measure the change in the review rate during discounts that is not due to the increase in mere volume of the reviews. The precision with which this parameter could be estimated depends on the number of discount days we observe for game $i$. For some games it is impossible to estimate the parameter precisely, either due to their short presence in the sample, insufficient number of discounts, or both. However, out of `r info[, .N]` games in the sample, `r revs[posSignif == T, .N]` have a value of $\rho_{1i}^+$ that is statistically different from zero. The distributions of $\rho_{1i}^+$ and $\rho_{1i}^-$ for those games are plotted in Figure \ref{likeRatesPlot}.
 
 ```{r like-rates, include = F}
 p1 <- ggplot(data = revs[, .(x = rhoPosD-rhoPosND)][x>=-0.5& x<=2,]) +
@@ -958,6 +955,19 @@ ggarrange(p1, p2, nrow=2, align = "v")
 ggarrange(p1, p2, nrow=1, align = "h")
 ```
 
+The main parameters of interest in this section are $(\rho_{1i}^+, \rho_{1i}^-)$, which measure the change in the like and dislike rates during discounts. The precision with which this parameter could be estimated for game $i$ depends on the number of discount days we observe for that game. For some products it is impossible to estimate the parameter precisely, either due to their short presence in the sample, insufficient number of discounts, or both. However, out of `r info[, .N]` games in the sample, `r revs[posSignif == T, .N]` have a value of $\rho_{1i}^+$ that is statistically different from zero, and `r revs[negSignif == T, .N]` have a value of $\rho_{1i}^-$ that is statistically different from zero. The distributions of $\rho_{1i}^+$ and $\rho_{1i}^-$ all games (excluding some outliers) are plotted in Figure \ref{likeRatesPlot}. These plots reveal two patterns. The first is that there are a lot of products whose consumers leave positive and/or negative feedback with the same probability on and off a discount, as is reflected in high density of the histograms close to zero. Second, the like rates appear to be way more responsive to discounts than the dislike rates.
+
+These findings require some interpretation. @Li16 claims “It is by now almost accepted as a stylized fact that offering deal promotion [...] deteriorates local merchants' online reputations”, while my findings seem to suggest that discounts improve review scores. Column (2) in Table \ref{reviewLag} in the Appendix presents the results of 
+regressing review score on days after a discount (with controls). The results suggest that, on average, the review score goes down, not up, in the days following a discount. The total effect at best adds up to 1 point out of a 100, but, technically, my findings do not contradict the literature. Instead, I show that there is a long tail of products that receive significantly better reviews during a price promotion. The main hypothesis that I am developing in this paper is that firms use discounting to manage their online reputation. This hypothesis implies that firms that  receive better reviews during price promotions should be more likely to engage in such behavior. Thus, my goal in this section is not to study the heterogeneity in the response of the review sentiment to discounts for its own sake, but simply to identify games that my hypothesis predicts should exhibit stronger effects. However, my findings present an interesting puzzle for future investigation: how does the (average) negative response of review score to discounts coexist with the distribution of products that seem to receive better reviews during discounts, not worse.
+
+\textcolor{red}{Looks like consumers are more likely to leave reviews during a discount. That could be interesting. Calculate standard errors for that?}
+
+
+
+## Revisiting Discounting and Transitions
+
+Now that I have estimated the parameters of the demand and review processes, I am ready to use them to revisit my
+main hypothesis. In Section \ref{descriptiveEvidence} I have established that 
 
 ```{r results = 'asis', warning = FALSE}
 # remove 1% with the highest values of rho_1+ (<=2)
@@ -1006,10 +1016,9 @@ star.out<-stargazer(reg1, reg2,
 ```
 
 
+
 \newpage
 \appendix
-
-
 # Additional Tables and Figures
 ## Discounts Around Transitions
 
@@ -1020,13 +1029,18 @@ cat(star_insert_row(star.out.transitions, c("Time Effects & Weekdays, Week \\\\"
 ```
 
 \newpage
-## Review Lag
+## Response Of Reviews and Score to Discounts
 Table \ref{reviewLag} presents the results of estimating
-$$NewReviews_{it} =\sum_{l = 0}^{7} \mathds{1}(\text{Disc. } l \text{ days ago})
-+ reviewBin_{it} + age_{it} + young_{it} +  f_i + \tau_t + u_{it}$$
+$$y_{it} \sim \sum_{l = 0}^{7} \mathds{1}(\text{Disc. } l \text{ days ago})
++ Controls_{it} +  f_i + \tau_t + u_{it}$$
+\noindent for $y_{it}$ being the number of new reviews for game $i$ on day $t$ and game $i$'s 
+review score. I use all the same controls as usual: review bin, score (in the first regression),
+log reviews, age, dummy for being less than 14 days old.
+
 ```{r include=F}
 # Calculate the daily new review count and the lags of the dummy for new discount.
 panel[, new.reviews := c(reviews[1], diff(reviews)), by = ID]
+#panel[, score.change := c(NA, diff(score)), by = ID]
 panel[, discNewLag2 := shift(discNewLag), by = ID][is.na(discNewLag2), discNewLag2 := F]
 panel[, discNewLag3 := shift(discNewLag2), by = ID][is.na(discNewLag3), discNewLag3 := F]
 panel[, discNewLag4 := shift(discNewLag3), by = ID][is.na(discNewLag4), discNewLag4 := F]
@@ -1038,25 +1052,34 @@ panel[, discNewLag7 := shift(discNewLag6), by = ID][is.na(discNewLag7), discNewL
 # error that I can not debug
 reg1 <- plm(new.reviews ~ discNew + discNewLag + discNewLag2 + discNewLag3 + discNewLag4 +
                           discNewLag5 + discNewLag6 + discNewLag7 +
-                          negative + mPositive + realPositive + vPositive + ovPositive + score + age + young + day + week,
+                          negative + mPositive + realPositive + vPositive + ovPositive + 
+                          score + log(reviews + 1) + age + young + day + week,
                           data = panel, model = "within")
 cov<-vcovHC(reg1, method="white1")
 se1 <- sqrt(diag(cov))
 
-star.out <- stargazer(reg1,
+reg2 <- plm(score~ discNew + discNewLag + discNewLag2 + discNewLag3 + discNewLag4 +
+                           discNewLag5 + discNewLag6 + discNewLag7 +
+                           negative + mPositive + realPositive + vPositive + ovPositive +
+                           log(reviews + 1) + age + young + day + week,
+                           data = panel, model = "within")
+cov<-vcovHC(reg2, method="white1")
+se2 <- sqrt(diag(cov))
+
+star.out <- stargazer(reg1, reg2, 
              label = "reviewLag",
              table.placement = "hp",
              header = FALSE,
-             title = "Spikes in Reviews After a Discount",
+             title = "Changes in Review Flows and Score After a Discount",
              se=list(se1),
-             dep.var.labels = c("New Reviews"),
+             dep.var.labels = c("New Reviews", "Score (0-100)"),
              covariate.labels = c("Discount 0 Days Ago", "Discount 1 Day Ago",
                                   "Discount 2 Days Ago", "Discount 3 Days Ago",
                                   "Discount 4 Days Ago", "Discount 5 Days Ago",
                                   "Discount 6 Days Ago", "Discount 7 Days Ago"),
              model.numbers = F,
              omit = c("day","week","negative","mPositive","realPositive",
-                      "vPositive", "ovPositive", "score", "age", "young"),
+                      "vPositive", "ovPositive", "reviews", "score", "age", "young"),
              omit.stat=c("f","adj.rsq","ser"),
              no.space=T)
 panel[, discNewLag2:=NULL][, discNewLag3:=NULL][, discNewLag4:=NULL][, discNewLag5:=NULL]
@@ -1064,8 +1087,9 @@ panel[, discNewLag6:=NULL][, discNewLag7:=NULL][, new.reviews:=NULL]
 ```
 
 ```{r results = 'asis'}
-cat(star_insert_row(star.out, c("Time Effects & Weekdays, Week \\\\",
-                                "Game Effects & $\\checkmark$ \\\\"), insert.after = c(28,28)))
+cat(star_insert_row(star.out, c("Weekdays + Week Effects & $\\checkmark$  & $\\checkmark$  \\\\",
+                                "Game Effects & $\\checkmark$  & $\\checkmark$ \\\\"), 
+                    insert.after = c(28,28)))
 ```
 
 
@@ -1090,7 +1114,7 @@ ggplot(data = panel[, .(y=sum(discount > 0)/(.N), z=avDisc[1]), by = t]) +
                      labels = months(getDate(c(months1, months2))[seq(1,25,3)],
                                      abbreviate=T),
                      minor_breaks = NULL) +
-  scale_y_continuous(name = "Fraction of Games",
+  scale_y_continuous(name = "Fraction of Games on Discount",
                      minor_breaks = NULL)  +
   my.theme(leg.x = 0.25, leg.y = 0.9)
 
@@ -1100,81 +1124,38 @@ rm(months1, months2, f, discPeriods)
 
 \newpage
 # Mathematical Appendix
-
-## Proofs
-
-\textbf{Proposition} \ref{poissonReviews}. Let the total number of reviewers during a day, $R$, be distributed Poisson with rate $\lambda$,  $R\sim P(\cdot; \lambda)$. A reviewer leaves a good review with probability $\pi$, and a bad review with probability $1-\pi$. Then, the numbers of good and bad reviews, $G$ and $B$, are independent Poisson random variables with rates $\pi\lambda$ and $(1-\pi)\lambda$.
-
-In the main text I have a Poisson arrival of customers, and only a fraction of them become reviewers, but the same proof goes through with that modification as well. The independence between the numbers of good and bad reviews is the surprising part of the proposition, and it is better highlighted in the form presented here.
-
-\vspace{1em}\noindent *Proof*: We start by showing that $G$ is Poisson.
-$$
-\PP{G=g} = \sum_{n=g}^{\infty}\CP{G = g}{R=n}\PP{R = n}
-=
-\sum_{n = g}^{\infty}
-\frac{n!}{g!(n-g)!}
-\pi^g (1-\pi)^{n-g}
-\frac{\lambda^n}{n!} e^{-\lambda}
-$$
-
-\noindent We leave only the parts that depend on $n$ within the sum:
-$$
-e^{-\lambda}\frac{\pi^g}{g!}\sum_{n = g}^{\infty}
-\frac{(1-\pi)^{n-g} \lambda^n}{(n-g)!}
-=
-e^{-\lambda}\frac{\pi^g\lambda^g}{g!}\sum_{n = g}^{\infty}
-\frac{(1-\pi)^{n-g} \lambda^{n-g} }{(n-g)!}
-=
-e^{-\pi\lambda}\frac{\pi^g\lambda^g}{g!}\sum_{k=0}^{\infty}
-\frac{[(1-\pi)\lambda]^{k} }{k!}e^{-(1-\pi)\lambda}
-$$
-
-\noindent The sum we have is just $\sum_{k=0}^{\infty} P(k; \lambda) = 1$, so the answer is
-$$
-\PP{G=g} = \frac{[\pi\lambda]^g}{g!}e^{-\pi\lambda} = P(g; \pi\lambda)
-$$
-
-Now the independence part. We are interested in $\PP{G=g, B=b}$, which could be written as
-$$\PP{G=g, B=b} = \CP{G=g, B=b}{R=g+b}\PP{R=g+b} =
-\frac{(g+b)!}{g!b!}
-\pi^g (1-\pi)^b
-\frac{\lambda^{g+b}}{(g+b)!} e^{-\lambda}
-$$
-Simply write $e^{-\lambda} = e^{-\pi\lambda}e^{-(1-\pi)\lambda}$, and collect the terms with $g$ and with $b$ to get
-$$
-\PP{G=g, B=b} =
-\frac{\pi^g \lambda^g}{g!}e^{-\pi\lambda}
-\frac{(1-\pi)^b\lambda^b}{b!}e^{-(1-\pi)\lambda}
-=
-P(g; \pi \lambda) P(b; (1-\pi)\lambda)$$
-\begin{flushright}
-$\triangleleft$
-\end{flushright}
-
-\newpage
 ## NLLS estimator of $\beta$
 
 In this appendix I  develop the estimator for the parameters of the model
 \begin{equation}\label{nonLinearLS}
  y_{it} = \psi_i y_{it-1} + \lambda_i(1+x'_{it}\beta) + u_{it},
 \end{equation}
-This model has \(2n\) \(i\)-specific parameters \((\lambda_i, \psi_i)\) and \(\dim(\beta)\) parameters that are shared by all entities in the panel. Estimation is via Non-linear Least Squares. The F.O.C. of the problem could
+with the moment condition $\CE{u_{it}}{y_{it-1}, x_{it}} = 0$. This model has \(2n\) \(i\)-specific parameters \((\lambda_i, \psi_i)\) and \(\dim(\beta)\) parameters that are shared by all entities in the panel. Estimation is via Non-linear Least Squares. The F.O.C. of the problem could
 be reduced so as to concentrate out all \((\lambda_i,\psi_i)\) parameters. Thus, estimation of \(2n + \dim(\beta)\) parameters reduces to solving a system of non-linear equations for \(\dim(\beta)\) parameters (or solving a NLLS problem of that dimension).
 
-The estimator is defined as the minimizer of the sum of squared errors:
+The estimator is defined as the minimizer of the sum of \emph{weighted} squared errors:
 \begin{equation}\label{sse}
  \hat \theta := \underset{\lambda_i, \psi_i, \beta}{\mathrm{argmin}}\;
- \sum_{i=1}^n \sum_{t=2}^{T_i} (y_{it} - \psi_i y_{it-1} - \lambda_i(1+x'_{it}\beta))^2
+ \sum_{i=1}^n \sum_{t=2}^{T_i} w_i(y_{it} - \psi_i y_{it-1} - \lambda_i(1+x'_{it}\beta))^2
 \end{equation}
-The F.O.C. are
+
+The reason for using weights $w_i$ comes from the large disparities in the sizes of 
+games in my sample. A on observation with $y_{it} = 12$, when the model predicts 10, contributes $2^2$ to the sum of squares, while an observation with $y_{it} = 120$ instead of $100$ contributes $20^2$. I use $w_i = 1/\max_{t} y_{it}$ as weights, forcing the dependent variable to be between 0 and 1. The F.O.C. are
 \begin{alignat}{3}
 \label{regFOC1} \psi_i:\; & \sum_{t=2}^{T_i} (y_{it} - \psi_iy_{it-1} - \lambda_i(1+x_{it}'\beta))y_{it-1} &\;=\;& 0\\
 \label{regFOC2} \lambda_i:\; &\sum_{t=2}^{T_i} (y_{it} - \psi_iy_{it-1} - \lambda_i(1+x_{it}'\beta))(1+x_{it}'\beta) &\;=\;& 0 \\
-  \beta:\; & \sum_{i=1}^n \sum_{t=2}^{T_i} (y_{it} - \psi_i y_{it-1} - \lambda_i(1+x'_{it}\beta))\lambda_ix_{it} &\;=\;& 0
+  \beta:\; & \sum_{i=1}^n \sum_{t=2}^{T_i} w_i (y_{it} - \psi_i y_{it-1} - \lambda_i(1+x'_{it}\beta))\lambda_ix_{it} &\;=\;& 0
 \end{alignat}
+
+\noindent Notice that the weights drop out of the first two conditions. As for the last condition, observe that the moment condition $\CE{u_{it}}{y_{it-1}, x_{it}} = 0$ implies $\EE{x_{it}u_{it}} = 0$, and, thus, the sum in the F.O.C. converges to 0 as $n \to \infty$ under any set of weights:
+$$\frac{1}{nT_i}\sum_{i=1}^n \sum_{t=2}^{T_i} w_i(y_{it} - \psi_i y_{it-1} - \lambda_i(1+x'_{it}\beta))\lambda_ix_{it}
+=
+\frac{1}{n}\sum_{i=1}^n \lambda_i w_i\left(\frac{1}{T_i}\sum_{t=2}^{T_i} u_{it}x_{it}\right) \stackrel{p}{\to}0$$
+In other words, the true value of $\beta$ is identified by the weighted moment conditions.
+
 Conditional on \(\beta\), the F.O.C. for \((\psi_i, \lambda_i)\) are F.O.C.'s of an OLS problem of the form
 \[\min_{\psi_i, \lambda_i}\sum_{t=2}^{T_i} (y_{it} - \psi_i y_{it-1} - \lambda_iz_{it})^2,\]
-where \(z_{it} = (1+x_{it}'\beta)\). Defining, in the standard way, \(\tilde{\mathbf Z}_i (\beta)\) to be the matrix with row \(t\) given by \([z_{it+1}, y_{it}]\), and \(y_i\) to be the vector of \(y_{it}\)
+where \(z_{it} = (1+x_{it}'\beta)\).  Defining, in the standard way, \(\tilde{\mathbf X}_i (\beta)\) to be the matrix with row \(t\) given by \([z_{it}, y_{it-1}]\), and \(y_i\) to be the vector of \(y_{it}\)
 observations, we get that the values of \(\hat \lambda_i,\hat \psi_i\) that solve (\ref{regFOC1})-(\ref{regFOC2}) are given by
 \begin{equation}\label{psilambda}
 \begin{bmatrix}
@@ -1182,13 +1163,13 @@ observations, we get that the values of \(\hat \lambda_i,\hat \psi_i\) that solv
 \hat \psi_i
 \end{bmatrix}(\beta)
 =
-(\tilde{\mathbf Z}_i' (\beta)\tilde{\mathbf Z}_i (\beta))^{-1}\tilde{\mathbf Z}_i' (\beta)y_i
+(\tilde{\mathbf X}_i' (\beta)\tilde{\mathbf X}_i (\beta))^{-1}\tilde{\mathbf X}_i' (\beta)y_i
 \end{equation}
 
 \noindent The estimator \(\hat \beta\) of \(\beta\) is now obtained
 as a solution to
 \begin{equation}\label{concFOC}
-\sum_{i=1}^n \sum_{t=2}^{T_i} (y_{it} - \psi_i(\beta) y_{it-1} - \lambda_i(\beta)(1+x'_{it}\beta))\lambda_i(\beta)x_{it} = 0
+\sum_{i=1}^n \sum_{t=2}^{T_i} w_i(y_{it} - \psi_i(\beta) y_{it-1} - \lambda_i(\beta)(1+x'_{it}\beta))\lambda_i(\beta)x_{it} = 0
 \end{equation}
 In practice I solve the concentrated minimization problem using (\ref{concFOC}) as the gradient.
 
@@ -1215,3 +1196,52 @@ where
 
 \newpage
 
+
+## Proofs
+
+\textbf{Proposition} \ref{poissonReviews}. Let the total number of reviewers during a day, $R$, be distributed Poisson with rate $\lambda$,  $R\sim P(\cdot; \lambda)$. A reviewer leaves a good review with probability $\pi$, and a bad review with probability $1-\pi$. Then, the numbers of good and bad reviews, $G$ and $B$, are independent Poisson random variables with rates $\pi\lambda$ and $(1-\pi)\lambda$.
+
+In the main text I have a Poisson arrival of customers, and only a fraction of them become reviewers, but the same proof goes through with that modification as well. The independence between the numbers of good and bad reviews is the surprising part of the proposition, and it is better highlighted in the form presented here.
+
+\vspace{1em}\noindent \textbf{Proof}: We start by showing that $G$ is Poisson.
+$$
+\PP{G=g} = \sum_{n=g}^{\infty}\CP{G = g}{R=n}\PP{R = n}
+=
+\sum_{n = g}^{\infty}
+\frac{n!}{g!(n-g)!}
+\pi^g (1-\pi)^{n-g}
+\frac{\lambda^n}{n!} e^{-\lambda}
+$$
+
+\noindent We leave only the parts that depend on $n$ within the sum:
+$$
+e^{-\lambda}\frac{\pi^g}{g!}\sum_{n = g}^{\infty}
+\frac{(1-\pi)^{n-g} \lambda^n}{(n-g)!}
+=
+e^{-\lambda}\frac{\pi^g\lambda^g}{g!}\sum_{n = g}^{\infty}
+\frac{(1-\pi)^{n-g} \lambda^{n-g} }{(n-g)!}
+=
+e^{-\pi\lambda}\frac{\pi^g\lambda^g}{g!}\sum_{k=0}^{\infty}
+\frac{[(1-\pi)\lambda]^{k} }{k!}e^{-(1-\pi)\lambda}
+$$
+
+\noindent The sum we have is just $\sum_{k=0}^{\infty} P(k; \lambda) = 1$, so the answer is
+$$
+\PP{G=g} = \frac{[\pi\lambda]^g}{g!}e^{-\pi\lambda} = P(g; \pi\lambda)
+$$
+
+\noindent Now the independence part. We are interested in $\PP{G=g, B=b}$, which could be written as
+$$\PP{G=g, B=b} = \CP{G=g, B=b}{R=g+b}\PP{R=g+b} =
+\frac{(g+b)!}{g!b!}
+\pi^g (1-\pi)^b
+\frac{\lambda^{g+b}}{(g+b)!} e^{-\lambda}
+$$
+Simply write $e^{-\lambda} = e^{-\pi\lambda}e^{-(1-\pi)\lambda}$, and collect the terms with $g$ and with $b$ to get
+$$
+\PP{G=g, B=b} =
+\frac{\pi^g \lambda^g}{g!}e^{-\pi\lambda}
+\frac{(1-\pi)^b\lambda^b}{b!}e^{-(1-\pi)\lambda}
+=
+P(g; \pi \lambda) P(b; (1-\pi)\lambda)\; \triangleleft$$
+
+\newpage

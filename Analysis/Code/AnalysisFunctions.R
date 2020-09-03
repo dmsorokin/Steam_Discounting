@@ -5,7 +5,7 @@ sampleStartDate <- "2017-01-01"
 sampleFinalDate <- anydate("2019-01-01")
 
 # The color scheme
-my.colors <- c("#1b85b8",  "#cc3399", "#007f66",  "#f27d0c", "#cc2a36")
+my.colors <- c("#1F3D7A",  "##CC0052", "#007f66",  "#f27d0c", "#cc2a36")
 
 # The style function has two arguments that specify the location of the legend
 # in graphs that need one. The defaults are specified, but feel free to change
