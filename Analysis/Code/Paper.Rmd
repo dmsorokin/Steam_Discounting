@@ -558,7 +558,7 @@ As the example above shows, it is impossible to consider proximity to a positive
 disc_{it} = \beta^+ T_{it}^+ + \beta^- T_{it}^- + X_{it}\beta + f_i + \tau_t + \varepsilon_{it},
 \end{equation}
 
-\noindent $disc_{it} = \mathds{1}\{Discount_{it} > 0\}$ is a dummy measuring if the game is on a discount or not, $X_{it}$ is a set of control variables that includes log proximities to positive and negative transitions, log review count, review bin dummies, and age; $f_i$ is a set of game-level fixed effects, and $\tau_t$ is a set of day of the week effects and sample week time effects. These time effects are especially important to include in the regressions with discounting variables on the left hand side, because Steam's curated discounts all start on predetermined days of the week, and seasonal sales affect a big number of games at the same time, as depicted in Figure \ref{seasonalSalesPeriods}. We expect $\beta^+$ to be positive, but, when it comes to $\beta^-$, any sign could be rationalized. A positive sign on  $\beta^-$ would serve as evidence that firms use discounting in order to escape from slumps in their reviews bins, while a negative sign would indicate that, on the contrary, firms on the verge of a bad transition become more prudent with their discounts, trying to not instigate extra purchasing/reviewing activity.
+\noindent $disc_{it} = \mathds{1}\{Discount_{it} > 0\}$ is a dummy measuring if the game is on a discount or not, $X_{it}$ is a set of control variables that includes log proximities to positive and negative transitions, log review count, score, review bin dummies, and age; $f_i$ is a set of game-level fixed effects, and $\tau_t$ is a set of day of the week effects and sample week time effects. These time effects are especially important to include in the regressions with discounting variables on the left hand side, because Steam's curated discounts all start on predetermined days of the week, and seasonal sales affect a big number of games at the same time, as depicted in Figure \ref{seasonalSalesPeriods}. We expect $\beta^+$ to be positive, but, when it comes to $\beta^-$, any sign could be rationalized. A positive sign on  $\beta^-$ would serve as evidence that firms use discounting in order to escape from slumps in their reviews bins, while a negative sign would indicate that, on the contrary, firms on the verge of a bad transition become more prudent with their discounts, trying to not instigate extra purchasing/reviewing activity.
 
 ```{r results = 'asis'}
 cat(star_insert_row(star.out,
@@ -571,7 +571,7 @@ cat(star_insert_row(star.out,
 
 Notice that the inclusion of both the distance to a potential positive, and a potential negative, transition in the regression drops all observations from the lowest ("Negative") and the highest ("Overwhelmingly Positive") review bins, as for games in those bins only one way of review transition is possible. However, given that the proportion of such observations in the sample is quite small, this is not a big concern. The analysis also excludes the observations with a “No Review Score” label, as I do not want to take a stance on what constitutes an improvement or a deterioration of the review score for such games. The results of estimating Equation \ref{potTransitionsReg} are presented in Table \ref{potentialTransitionsResults}. The first column is the full specification that uses all observations in the sample (except the omissions just mentioned). The second column uses a more stringent definition of proximity to a transition, requiring a game to be `r band`, rather than `r 2*band`, days away from a potential transition to be counted as being “close to a transition”. The third column uses only transitions between “Mixed”, “Mostly Positive”, and “Positive” labels, as these are the transitions that rely on the review score only, while “Very Positive” and “Overwhelmingly Positive” require both a certain review score, and a certain number of reviews.\footnote{Technically, a game improving its review score from 79\% to 80\% can transition to both “Positive” and “Very Positive”, so the results in the third column bundle together these types of transitions.}. @SorokinStevens20 exclusively uses these simple review bins in their regression discontinuity analysis, precisely in order to avoid the complications that arise from double thresholds required for “Very Positive” and “Overwhelmingly Positive”.
 
-The results in Table \ref{potentialTransitionsResults} unequivocally support the hypothesis that proximity to a review bin upgrade increases firms' willingness to run a price promotion. Measured against the `r round(panel[, mean((discount > 0), na.rm=T)]*100)`% probability for a random game-day pair from the sample to have a discount\footnote{The corresponding number for the games in the treatment group is `r round(100*panel[ID %in% panel[pos.treatment == 1, unique(ID)], mean((discount > 0), na.rm = T)])`.}, the effects constitute a `r round(100*(reg3$coefficients[1]/panel[, mean((discount > 0), na.rm=T)]))`-`r round(100*(reg1$coefficients[1]/panel[, mean((discount > 0), na.rm=T)]))`% increase in the daily probability of a discount. The uncertainty about the sign and the significance of the proximity to a potential negative transition is resolved in favor of the prudent approach on the firms' side: the results suggest that firms under a risk of deteriorating their review label are `r -round(100*(reg3$coefficients[2]/panel[, mean((discount > 0), na.rm=T)]))`-`r -round(100*(reg1$coefficients[2]/panel[, mean((discount > 0), na.rm=T)]))`% less likely to go on a discount, albeit the effect is only present in two out of three specifications.
+The results in Table \ref{potentialTransitionsResults} unequivocally support the hypothesis that proximity to a review bin upgrade increases firms' willingness to run a price promotion. Measured against the `r round(panel[, mean((discount > 0), na.rm=T)]*100)`% probability for a random game-day pair from the sample to have a discount\footnote{The corresponding number for the games in the treatment group is `r round(100*panel[ID %in% panel[pos.treatment == 1, unique(ID)], mean((discount > 0), na.rm = T)])`.}, the effects constitute a `r round(100*(reg3$coefficients[1]/panel[, mean((discount > 0), na.rm=T)]))`-`r round(100*(reg1$coefficients[1]/panel[, mean((discount > 0), na.rm=T)]))`% increase in the daily probability of a discount. The uncertainty about the sign and the significance of the proximity to a potential negative transition is resolved in favor of the prudent approach on the firms' side: the results suggest that firms under a risk of deteriorating their review label are `r -round(100*(reg3$coefficients[2]/panel[, mean((discount > 0), na.rm=T)]))`-`r -round(100*(reg1$coefficients[2]/panel[, mean((discount > 0), na.rm=T)]))`% less likely to go on a discount, albeit the effect is only significant at 1\% level in two out of three specifications.
 
 
 ## Discussion
@@ -767,7 +767,7 @@ rm(reg.results, reg.results.stats)
 table <- texreg(res,
                 stars = c(0.01, 0.05, 0.1),
                 digits = 3,
-                custom.model.names = c("(1)", "(2)", "(3"),
+                custom.model.names = c("(1)", "(2)", "(3)"),
                 reorder.coef = c(1, 2, 6, 7, 8, 9, 10, 11, 5, 12, 3, 4, 13, 14),
                 caption = "Estimates of the Demand Parameters",
                 caption.above = T,
@@ -878,16 +878,20 @@ revs <- revs[!is.na(rhoPosD)]
 # calculate s.e.
 id.matrix <- matrix(c(1,0,0,1), nrow=2)
 for (id in revs[, ID]){
-   sums <- panel[ID==id, .(disc, lam)][, sum(lam), by = disc]
-
+   sums <- panel[ID==id, .(disc, lam)][, sum(lam), by=disc][!is.na(disc),]
+   
    matND <- matrix(c(sums[disc==F,V1],0,0,0), nrow=2)
    matD <- matrix(rep(sums[disc==T,V1],4), nrow=2)
 
    Hpos <- matND/revs[ID==id, rhoPosND] + matD/revs[ID==id, rhoPosD]
-   HposInv <- solve(Hpos, id.matrix)
+   HposInv <- tryCatch(solve(Hpos, id.matrix),
+                       error = function(x){return(matrix(rep(NA,4), 
+                                                         nrow = 2))})
 
    Hneg <- matND/revs[ID==id, rhoNegND] + matD/revs[ID==id, rhoNegD]
-   HnegInv <- solve(Hpos, id.matrix)
+   HnegInv <- tryCatch(solve(Hneg, id.matrix),
+                       error = function(x){return(matrix(rep(NA,4), 
+                                                         nrow = 2))})
 
    revs[ID==id, rhoPos0se := sqrt(HposInv[1,1])]
    revs[ID==id, rhoPos1se := sqrt(HposInv[2,2])]
@@ -899,14 +903,40 @@ for (id in revs[, ID]){
 # label all games with significant rho_1^+
 revs[, posSignif := abs((rhoPosD-rhoPosND)/rhoPos1se) >= 1.96]
 revs[, negSignif := abs((rhoNegD-rhoNegND)/rhoNeg1se) >= 1.96]
+
+# score off discount and score on discount
+revs[, scoreND := rhoPosND/(rhoPosND+rhoNegND)]
+revs[, scoreD := rhoPosD/(rhoPosD+rhoNegD)]
+revs[, score.dif := scoreD - scoreND]
+
 rm(Hpos, Hneg, HnegInv, HposInv)
 ```
 
+```{r}
+# Game by game test whether reviews during a discount are more positive 
+# (in the score sense) than those off discount
+f <- panel[!is.na(disc), .(disc, l = c(pReviews[1], diff(pReviews)), d = c(nReviews[1], diff(nReviews))), by = ID][, .(n1 = sum(l), n0 = sum(d)), keyby = c("ID", "disc")]
+
+test <- f[,  .(p.val = tryCatch(t.test(c(rep(1, n1[1]), rep(0, n0[1])),
+         c(rep(1, n1[2]), rep(0, n0[2])),
+         alternative = "less")$p.value,
+         error = function(x){-1})), by = ID]
+test[p.val ==-1, p.val := NA]
+discIDs <- test[p.val <=0.05, ID]
+panel[, scoreIsBiggerDisc := (ID %in% test[p.val <= 0.05, ID])]
+
+test <- f[,  .(p.val = tryCatch(t.test(c(rep(1, n1[1]), rep(0, n0[1])),
+         c(rep(1, n1[2]), rep(0, n0[2])),
+         alternative = "greater")$p.value,
+         error = function(x){-1})), by = ID]
+test[p.val ==-1, p.val := NA]
+discIDs <- test[p.val <=0.05, ID]
+panel[, scoreIsLessDisc := (ID %in% test[p.val <= 0.05, ID])]
+```
 
 
-```{r like-rates, include = F}
+```{r fig.cap='\\label{likeRatesPlot} Distributions of $\\rho_{1i}^+$ and $\\rho_{1i}^-$'}
 p1 <- ggplot(data = revs[, .(x = rhoPosD-rhoPosND)][x>=-0.5& x<=2,]) +
-  ggtitle("Discount Contribution to Likes") +
   geom_histogram(mapping = aes(x = x, y = ..density..),
                  color = "black",
                  position = "identity",
@@ -928,7 +958,6 @@ p1 <- ggplot(data = revs[, .(x = rhoPosD-rhoPosND)][x>=-0.5& x<=2,]) +
   coord_cartesian(xlim = c(-0.5, 2))
 
 p2 <- ggplot(data = revs[, .(x = rhoNegD-rhoNegND)][x>=-0.5& x<=2,]) +
-  ggtitle("Discount Contribution to Dislikes") +
   geom_histogram(mapping = aes(x = x, y = ..density..),
                  color = "black",
                  position = "identity",
@@ -948,11 +977,11 @@ p2 <- ggplot(data = revs[, .(x = rhoNegD-rhoNegND)][x>=-0.5& x<=2,]) +
   my.theme() +
   coord_cartesian(xlim = c(-0.5, 2))
 
-ggarrange(p1, p2, nrow=2, align = "v")
+ggarrange(p1, p2, nrow=1, align = "h")
 ```
 
-```{r fig.cap='\\label{likeRatesPlot} Distributions of $\\rho_{1i}^+$ and $\\rho_{1i}^-$'}
-ggarrange(p1, p2, nrow=1, align = "h")
+```{r like-rates, fig.width = 8, fig.height = 6, include = FALSE}
+ggarrange(p1, p2, nrow=2, align = "v")
 ```
 
 The main parameters of interest in this section are $(\rho_{1i}^+, \rho_{1i}^-)$, which measure the change in the like and dislike rates during discounts. The precision with which this parameter could be estimated for game $i$ depends on the number of discount days we observe for that game. For some products it is impossible to estimate the parameter precisely, either due to their short presence in the sample, insufficient number of discounts, or both. However, out of `r info[, .N]` games in the sample, `r revs[posSignif == T, .N]` have a value of $\rho_{1i}^+$ that is statistically different from zero, and `r revs[negSignif == T, .N]` have a value of $\rho_{1i}^-$ that is statistically different from zero. The distributions of $\rho_{1i}^+$ and $\rho_{1i}^-$ all games (excluding some outliers) are plotted in Figure \ref{likeRatesPlot}. These plots reveal two patterns. The first is that there are a lot of products whose consumers leave positive and/or negative feedback with the same probability on and off a discount, as is reflected in high density of the histograms close to zero. Second, the like rates appear to be way more responsive to discounts than the dislike rates.
@@ -972,7 +1001,7 @@ main hypothesis. In Section \ref{descriptiveEvidence} I have established that
 ```{r results = 'asis', warning = FALSE}
 # remove 1% with the highest values of rho_1+ (<=2)
 # and only keep significant coefficients
-panel <- merge(panel, revs[, .(ID, rho1 = rhoPosD - rhoPosND, rhoPosD, rhoNegD)])
+panel <- merge(panel, revs[, .(ID, rho1 = rhoPosD - rhoPosND, score.dif)])
 
 panel[, pos.treatment := (needPos <= 2*band)]
 panel[, neg.treatment := (needNeg <= 2*band)]
@@ -980,9 +1009,7 @@ panel[, neg.treatment := (needNeg <= 2*band)]
 reg1 <- plm(I(discount>0) ~ rho1*pos.treatment + rho1*neg.treatment +
                log(needPosDays) + log(needNegDays) + poly(tWODisc, degree = 2) + log(reviews+1) + score +
                mPositive + realPositive + vPositive + age + young + day + week,
-           data = panel[rho1 <= 2 & rho1 >= -0.5 
-                        # ID %in% revs[negSignif == T | posSignif == T, ID], 
-                        ],
+           data = panel[rho1 <= 2 & rho1 >= -0.5,],
            model = "pooling")
 cov<-vcovHC(reg1, method="white1")
 se1 <- sqrt(diag(cov))
@@ -990,31 +1017,53 @@ se1 <- sqrt(diag(cov))
 reg2 <- plm(I(discount>0) ~ rho1*pos.treatment + rho1*neg.treatment +
                log(needPosDays) + log(needNegDays) + poly(tWODisc, degree = 2) + log(reviews+1) + score +
                mPositive + realPositive + vPositive + age + young + day + week,
+           data = panel[rho1 <= 2 & rho1 >= -0.5 & 
+                        ID %in% revs[negSignif == T | posSignif == T, ID], 
+                        ],
+           model = "pooling")
+cov<-vcovHC(reg2, method="white1")
+se2 <- sqrt(diag(cov))
+
+
+reg3 <- plm(I(discount>0) ~ rho1*pos.treatment + rho1*neg.treatment +
+               log(needPosDays) + log(needNegDays) + poly(tWODisc, degree = 2) + log(reviews+1) + score +
+               mPositive + realPositive + vPositive + age + young + day + week,
            data = panel[rho1 <= 2 & rho1 >= -0.5
                         # ID %in% revs[negSignif == T | posSignif == T, ID], 
                         ],
            model = "within")
-cov<-vcovHC(reg2, method = "white1")
-se2 <- sqrt(diag(cov))
+cov<-vcovHC(reg3, method = "white1")
+se3 <- sqrt(diag(cov))
 
+reg4 <- plm(I(discount>0) ~ rho1*pos.treatment + rho1*neg.treatment +
+               log(needPosDays) + log(needNegDays) + poly(tWODisc, degree = 2) + log(reviews+1) + score +
+               mPositive + realPositive + vPositive + age + young + day + week,
+           data = panel[rho1 <= 2 & rho1 >= -0.5 & 
+                        ID %in% revs[negSignif == T | posSignif == T, ID], 
+                        ],
+           model = "within")
+cov<-vcovHC(reg4, method = "white1")
+se4 <- sqrt(diag(cov))
 
-star.out<-stargazer(reg1, reg2,
+star.out<-stargazer(reg1, reg2, reg3, reg4,
                     label = "rhoTransDiscReg",
                     header = FALSE,
                     title = "Discounts Before Potential Transitions And Firm Heterogeneity",
-                    se=list(se1, se2),
+                    se=list(se1, se2, se3, se4),
                     dep.var.labels = c("$\\mathbb{P}(Discount)$"),
-                    # column.labels=c("OLS", "Interaction", "FE", "FE: no $\\rho_{1i}^+$"),
+                    column.labels=c("OLS", "OLS:Signif", "FE", "FE:Signif"),
                     model.numbers = F,
                     omit = c("tWODisc", "reviews", "noScore", "realPositive", 
                              "mPositive", "vPositive", "age", "young", "Constant",
                              "score", "day", "week", "needPosDays", "needNegDays"),
-                    #covariate.labels = ,
+                    covariate.labels = c("$\\rho_1^+$",
+                                         "$\\rho_1^+ \\times$ Pos. Tr.",
+                                         "$\\rho_1^+ \\times$ Neg. Tr.",
+                                         "Pos. Tr.", "Neg. Tr."),
                     order = c("rho1"),
                     omit.stat=c("f","adj.rsq","ser"),
                     no.space=T)
 ```
-
 
 
 \newpage
@@ -1033,7 +1082,7 @@ cat(star_insert_row(star.out.transitions, c("Time Effects & Weekdays, Week \\\\"
 Table \ref{reviewLag} presents the results of estimating
 $$y_{it} \sim \sum_{l = 0}^{7} \mathds{1}(\text{Disc. } l \text{ days ago})
 + Controls_{it} +  f_i + \tau_t + u_{it}$$
-\noindent for $y_{it}$ being the number of new reviews for game $i$ on day $t$ and game $i$'s 
+\noindent for $y_{it}$ being the number of new reviews for game $i$ on day $t$, the ratio of new reviews to the average speed of review arrival, and game $i$'s 
 review score. I use all the same controls as usual: review bin, score (in the first regression),
 log reviews, age, dummy for being less than 14 days old.
 
@@ -1058,21 +1107,29 @@ reg1 <- plm(new.reviews ~ discNew + discNewLag + discNewLag2 + discNewLag3 + dis
 cov<-vcovHC(reg1, method="white1")
 se1 <- sqrt(diag(cov))
 
-reg2 <- plm(score~ discNew + discNewLag + discNewLag2 + discNewLag3 + discNewLag4 +
+reg2 <- plm(I(new.reviews/(pRevRate+nRevRate)) ~ discNew + discNewLag + discNewLag2 + discNewLag3 + discNewLag4 +
+                          discNewLag5 + discNewLag6 + discNewLag7 +
+                          negative + mPositive + realPositive + vPositive + ovPositive + 
+                          score + log(reviews + 1) + age + young + day + week,
+                          data = panel, model = "within")
+cov<-vcovHC(reg2, method="white1")
+se2 <- sqrt(diag(cov))
+
+reg3 <- plm(score ~ discNew + discNewLag + discNewLag2 + discNewLag3 + discNewLag4 +
                            discNewLag5 + discNewLag6 + discNewLag7 +
                            negative + mPositive + realPositive + vPositive + ovPositive +
                            log(reviews + 1) + age + young + day + week,
                            data = panel, model = "within")
-cov<-vcovHC(reg2, method="white1")
-se2 <- sqrt(diag(cov))
+cov<-vcovHC(reg3, method="white1")
+se3 <- sqrt(diag(cov))
 
-star.out <- stargazer(reg1, reg2, 
+star.out <- stargazer(reg1, reg2, reg3, 
              label = "reviewLag",
              table.placement = "hp",
              header = FALSE,
              title = "Changes in Review Flows and Score After a Discount",
-             se=list(se1),
-             dep.var.labels = c("New Reviews", "Score (0-100)"),
+             se=list(se1, se2, se3),
+             dep.var.labels = c("New Reviews", "New Reviews \\%", "Score (0-100)"),
              covariate.labels = c("Discount 0 Days Ago", "Discount 1 Day Ago",
                                   "Discount 2 Days Ago", "Discount 3 Days Ago",
                                   "Discount 4 Days Ago", "Discount 5 Days Ago",
