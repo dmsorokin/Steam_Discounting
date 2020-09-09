@@ -269,17 +269,20 @@ The path of the review score of a typical game is quite different from its price
 
 
 ```{r}
-transitions <- panel[, .(t, neg=c(NA, diff(negative)),
+transitions <- panel[, .(t, age,
+                    noscore=c(NA, diff(noScore)),
+                    neg=c(NA, diff(negative)),
                     mix=c(NA, diff(mixed)),
                     mpos=c(NA, diff(mPositive)),
                     pos=c(NA, diff(realPositive)),
                     vPos=c(NA, diff(vPositive)),
                     ovPos=c(NA, diff(ovPositive)),
-                    negative, mixed, mPositive, realPositive,
-                    vPositive, ovPositive), by=ID]
-transitions <- transitions[neg ==-1 | mix ==-1 | 
+                    noScore, negative, mixed, mPositive, 
+                    realPositive, vPositive, ovPositive), by=ID]
+transitions <- transitions[noscore==-1 | neg ==-1 | mix ==-1 | 
                            mpos == -1 | pos == -1 | 
                            vPos == -1 | ovPos == -1, ]
+transitions[noscore==-1, origin := "No Score"]
 transitions[neg==-1, origin := "Negative"]
 transitions[mix==-1, origin := "Mixed"]
 transitions[mpos==-1, origin := "M. Positive"]
@@ -287,16 +290,17 @@ transitions[pos==-1, origin := "Positive"]
 transitions[vPos==-1, origin := "V. Positive"]
 transitions[ovPos==-1, origin := "Ov. Positive"]
 transitions[, origin := factor(origin, 
-                               levels = labls[-1],
-                               labels = labls[-1],
+                               levels = labls,
+                               labels = labls,
                                ordered = T)]
 setkey(transitions, ID, t)
 transitions[, trID := (1:length(t)), by = ID]
 setkey(transitions, ID, t, trID)
 # separate good transitions from bad transitions
 transitions[, goodTr := F]
-transitions[neg==-1 | (mix==-1 & neg!=1) | (mpos == -1 & mix != 1 & neg!= 1) |
-            (pos==-1 & (vPos==1 | ovPos==1)) | (vPos==-1 & ovPos == 1), goodTr := T]
+# based on the estimation of demand, classify any transition from No Score as good
+transitions[noscore==-1 | neg==-1 | (mix==-1 & neg!=1) | (mpos == -1 & mix != 1 & neg!= 1) | (pos==-1 & (vPos==1 | ovPos==1)) | (vPos==-1 & ovPos == 1), 
+            goodTr := T]
 
 transitions[, dur := shift(t,-1) - t, by = ID]
 ```
@@ -307,6 +311,7 @@ Despite the relative rigidity of the review score, there is enough transitions b
 kable(
    cbind(
       transitions[, .(
+         `N/S`= round(100*mean(noScore)),
          Neg = round(100*mean(negative)),
          Mix = round(100*mean(mixed)), 
          `M. Pos` = round(100*mean(mPositive)), 
@@ -315,6 +320,7 @@ kable(
          `Ov. Pos` = round(100*mean(ovPositive))),
          keyby=origin][,` `:=origin][,-c("origin")],
       transitions[, .(
+         `N/S` = sum(noScore),
          Neg = sum(negative),
          Mix = sum(mixed),
          `M. Pos` = sum(mPositive),
@@ -325,15 +331,18 @@ kable(
       format = "latex",
       label = "transitionMatrix",
       caption = "Transition Probability And Count Matrices",
-      align = c('c', "c", "c", "c", "c", "c", "c"),
+      align = c('c', 'c', "c", "c", "c", "c", "c", "c"),
       valign = 't',
       linesep = "",
       booktabs = T) %>%
-add_header_above(c("Probabilities" = 6, " ","Counts" = 6)) %>%
+add_header_above(c("Probabilities" = 7, " ","Counts" = 7)) %>%
 kable_styling(latex_options = c("scale_down"))
 ```
 
- 
+```{r}
+noscore.ids <- transitions[noscore==-1 & age >=10, ID]
+```
+
 
 ```{r results='asis'}
 transPanel <- transitions[(is.na(dur) | dur >= 7), 
@@ -385,7 +394,7 @@ panel[is.na(price), price := 1.0]
 
 ```{r, include=F}
 reg1 <- lm(I(discount>0) ~  tToTransitNeg + tToTransitPos +
-             negative + mPositive + realPositive +
+             noScore + negative + mPositive + realPositive +
              vPositive + ovPositive + score +
              log(reviews+1) + age + poly(tWODisc, degree = 2) + 
              day + week, data = transPanel)
@@ -401,7 +410,7 @@ star.out.transitions <- stargazer(reg1,
           #column.labels=c(),
           dep.var.labels = c("Discount Probability"),
           covariate.labels = c("Days to Transition", "Days After Transition",
-                               "Negative", "Mostly Positive", "Positive", "Very Positive",
+                               "No Score", "Negative", "Mostly Positive", "Positive", "Very Positive",
                                "Ov. Positive", "Score", "Log Reviews", "Age", "Const"),
           model.numbers = F,
           omit = c("day", "week", "tWODisc"),
@@ -453,7 +462,7 @@ band <- 7
 panel[, pRevRate := max(pReviews,na.rm = T)/max(age, na.rm = T), by = ID]
 panel[, nRevRate := max(nReviews,na.rm = T)/max(age, na.rm = T), by = ID]
 
-# define how many positive and negative reviews are needed to transition, manualy
+# define how many positive and negative reviews are needed to transition, manually
 # for every threshold
 R.low <- 0.4
 R.high <- 0.7
@@ -745,14 +754,14 @@ reg1 <- plm(log(number) ~ log(numberLag) + price +
             discNewLag + discSeason + noScore + negative +
             mPositive +
             realPositive + vPositive + ovPositive +
-            log(reviews+1) + score + age + I(age<=7) + day,
+            log(reviews+1) + score + age + young + day,
                 data=panel,
             model="within")
 
 reg2 <- plm(log(number) ~ log(numberLag) + price +
               discNewLag + noScore + negative + mPositive +
               realPositive + vPositive + ovPositive +
-              log(reviews+1) + score + age + I(age<=7) + day + week,
+              log(reviews+1) + score + age + young + day + week,
                 data=panel,
             model="within")
 
@@ -857,7 +866,6 @@ ggarrange(p1, p2, nrow=2, align = "v")
 
 ### Review Parameters
 
-
 ```{r}
 # Notice that rhoPosD is the sum of the parameters I defined
 # in the text, rho_0i^+ and rho_1i^+, but the variance matrix is
@@ -911,6 +919,12 @@ revs[, score.dif := scoreD - scoreND]
 
 rm(Hpos, Hneg, HnegInv, HposInv)
 ```
+
+```{r}
+noscore.ids <- transitions[noscore==-1 & age >=10, ID]
+revs[ID %in% noscore.ids, summary(rhoPosND)]
+```
+
 
 ```{r}
 # Game by game test whether reviews during a discount are more positive 
