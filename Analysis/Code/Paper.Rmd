@@ -681,7 +681,7 @@ A deeper problem for identifying the price elasticity of demand lies in defining
 
 ### Review Parameters
 
-The part of the model describing the reviewing behavior of the buyers is more starightforward. Intuitively, the propensity to leave a review on and off a discount (the like and dislike rates $r_{it}^+$, $r_{it}^-$) are identified by the differences in reviews left on and off a discount. In fact, this intuition becomes a rigorous proof, as wil be shown shortly.
+The part of the model describing the reviewing behavior of the buyers is more straightforward. Intuitively, the propensity to leave a review on and off a discount (the like and dislike rates $r_{it}^+$, $r_{it}^-$) are identified by the differences in reviews left on and off a discount. In fact, this intuition becomes a rigorous proof, as wil be shown shortly.
 
 Following assumption \ref{arrivalAssumptions}, the arrival of buyers for game $i$ on day $t$ follows a Poisson distribution with arrival rate $\lambda_{it} = \lambda_i (1 + x_{it}'\beta)$. I also assumed that, $k$ days later, each consumer leaves a  positive review with probability $r_{it}^+$, a negative review with probability $r_{it}^-$, and no review otherwise. Then, the following proposition is true:
 \begin{proposition}\label{poissonReviews}
