@@ -66,6 +66,8 @@ knitr::opts_chunk$set(fig.pos = "htp", out.extra = "", fig.align = "center")
 source(here("Analysis", "Code", "AnalysisFunctions.R"))
 load(here("Analysis", "Input", "info.Rda"))
 load(here("Analysis", "Input", "panel.Rda"))
+# make sure the order of ID and t columns is right
+merge(panel[, .(ID, t)], panel, by = c("ID", "t"))
 ```
 
 # Introduction
@@ -203,8 +205,10 @@ labls <- c("No Score", "Negative", "Mixed", "M. Positive", "Positive", "V. Posit
 short.labls <- c("N/S", "Neg", "Mix", "M.Pos", "Pos", "V.Pos", "Ov.Pos")
 nGroups <- 3
 p1 <- ggplot(data = panel[age==180, 
-                    .(`Review Bin` = factor(labls[1*noScore + 2*negative + 3*mixed + 4*mPositive + 
-                                                  5*realPositive + 6*vPositive + 7*ovPositive],
+                    .(`Review Bin` = factor(labls[1*noScore + 2*negative + 
+                                                  3*mixed + 4*mPositive + 
+                                                  5*realPositive + 6*vPositive +
+                                                  7*ovPositive],
                       levels = labls, labels = short.labls)
                       )]) +
   geom_bar(mapping = aes(x = `Review Bin`, 
@@ -505,14 +509,16 @@ reg1 <- plm(log(number) ~ log(numberLag) + price +
             realPositive + vPositive + ovPositive +
             log(reviews+1) + score + age + young + day,
                 data=panel,
-            model="within")
+            model="within",
+            index = c("ID", "t"))
 
 reg2 <- plm(log(number) ~ log(numberLag) + price +
               discNewLag + noScore + negative + mPositive +
               realPositive + vPositive + ovPositive +
               log(reviews+1) + score + age + young + day + week,
                 data=panel,
-            model="within")
+            model="within",
+            index = c("ID", "t"))
 
 # plmJuliaToTex contains a lot of manual coding, because of the
 # difference in variable names between Julia and R codes. If you
@@ -740,7 +746,8 @@ reg3 <- plm(I(discount>0) ~ pos.treatment + neg.treatment +
               poly(tWODisc, degree = 2) + log(reviews+1) + score +
               mPositive + age + young + day + week,
                  data=panel[],
-            model="within")
+            model="within",
+            index = c("ID", "t"))
 cov<-vcovHC(reg3, method="white1")
 se3 <- sqrt(diag(cov))
 
@@ -777,7 +784,8 @@ reg1 <- plm(I(discount>0) ~ pos.treatment + neg.treatment +
                log(needPosDays) + log(needNegDays) + poly(tWODisc, degree = 2) + log(reviews+1) + score +
                mPositive + realPositive + vPositive + age + young + day + week,
                  data=panel[],
-            model="within")
+            model="within",
+            index = c("ID", "t"))
 cov<-vcovHC(reg1, method="white1")
 se1 <- sqrt(diag(cov))
 
@@ -788,7 +796,8 @@ reg2 <- plm(I(discount>0) ~ pos.treatment + neg.treatment +
                log(needPosDays) + log(needNegDays) + poly(tWODisc, degree = 2) + log(reviews+1) + score +
                mPositive + realPositive + vPositive + age + young + day + week,
                  data=panel[],
-            model="within")
+            model="within",
+            index = c("ID", "t"))
 cov<-vcovHC(reg2, method="white1")
 se2 <- sqrt(diag(cov))
 
@@ -832,17 +841,17 @@ Notice that the inclusion of both the distance to a potential positive, and a po
 
 The results of estimating Equation \ref{potTransitionsReg} are presented in Table \ref{potentialTransitionsResults}. The first column is the full specification that uses all observations in the sample (except the omissions just mentioned). The second column uses a more stringent definition of proximity to a transition, requiring a game to be `r band`, rather than `r 2*band`, days away from a potential transition to be counted as being “close to a transition”. The third column uses only transitions between “Mixed”, “Mostly Positive”, and “Positive” labels, as these are the transitions that rely on the review score only, while “Very Positive” and “Overwhelmingly Positive” require both a certain review score, and a certain number of reviews.\footnote{Technically, a game improving its review score from 79\% to 80\% can transition to both “Positive” and “Very Positive”, so the results in the third column bundle together these types of transitions.}. @SorokinStevens20 exclusively uses these simple review bins in their regression discontinuity analysis, precisely in order to avoid the complications that arise from double thresholds required for “Very Positive” and “Overwhelmingly Positive”.
 
-The results in Table \ref{potentialTransitionsResults} unequivocally support the hypothesis that proximity to a review bin upgrade increases firms' willingness to run a price promotion. Measured against the `r round(panel[, mean((discount > 0), na.rm=T)]*100)`% probability for a random game-day pair from the sample to have a discount\footnote{The corresponding number for the games in the treatment group is `r round(100*panel[ID %in% panel[pos.treatment == 1, unique(ID)], mean((discount > 0), na.rm = T)])`.}, the effects constitute a `r round(100*(reg3$coefficients[1]/panel[, mean((discount > 0), na.rm=T)]))`-`r round(100*(reg1$coefficients[1]/panel[, mean((discount > 0), na.rm=T)]))`% increase in the daily probability of a discount. The uncertainty about the sign and the significance of the proximity to a potential negative transition is resolved in favor of the prudent approach on the firms' side: the results suggest that firms under a risk of deteriorating their review label are `r -round(100*(reg3$coefficients[2]/panel[, mean((discount > 0), na.rm=T)]))`-`r -round(100*(reg1$coefficients[2]/panel[, mean((discount > 0), na.rm=T)]))`% less likely to go on a discount, albeit the effect is only significant at 1\% level in two out of three specifications.
+The results in Table \ref{potentialTransitionsResults} unequivocally support the hypothesis that proximity to a review bin upgrade increases firms' willingness to run a price promotion. Measured against the `r round(panel[, mean((discount > 0), na.rm=T)]*100)`% probability for a random game-day pair from the sample to have a discount\footnote{The corresponding number for the games in the positive treatment group is `r round(100*panel[ID %in% panel[pos.treatment == 1, unique(ID)], mean((discount > 0), na.rm = T)])`.}, the effects constitute a `r round(100*(re23$coefficients[1]/panel[, mean((discount > 0), na.rm=T)]))`-`r round(100*(reg3$coefficients[1]/panel[, mean((discount > 0), na.rm=T)]))`% increase in the daily probability of a discount. Proximity to a potential negative transition seems to have negative or no effect on the probability of discount. The results in the main specification suggest that firms under a risk of deteriorating their review label are `r -round(100*(reg1$coefficients[2]/panel[, mean((discount > 0), na.rm=T)]))` less likely to go on a discount, albeit the effect is not significant in the other two specifications.
 
 
 ## Discussion
 
-It is reasonable to say that model \ref{potTransitionsReg} is able to identify the causal effect of the proximity to a review transition on discounting behavior. As the sample was selected to include only products with the most stable quality and the lowest number of game updates, the path of the review score is relatively exogenous for the firms. Taking its current review score as given, a firm can decide whether to run a price promotion or not, which makes the main independent variables in my analysis exogenous. On top of that, model \ref{potTransitionsReg} includes a rich set of controls and fixed effects. Some threats to identification still remain, of course. One is unobserved marketing interventions preceding discounts. If advertisements improve the review score, then, by definition, advertisement would be correlated with the treatment variable, moving games a bit closer to transitions. If a discount then follows, as a part of the general marketing plan, rather than to leverage the new proximity to a transition, the positive association between discounting and positive transitions would be spurious. Note, however, that it would be more natural to expect firms to roll out all marketing interventions at the same time (i.e., running a price promotion while the game is advertised). In that case, the threat to identification vanishes.
+It is reasonable to say that model (\ref{potTransitionsReg}) is able to identify the causal effect of the proximity to a review transition on discounting behavior. As the sample was selected to include only products with the most stable quality and the lowest number of game updates, the path of the review score is relatively exogenous for the firms. Taking its current review score as given, a firm can decide whether to run a price promotion or not, which makes the main independent variables in my analysis exogenous. On top of that, model \ref{potTransitionsReg} includes a rich set of controls and fixed effects. Some threats to identification still remain, of course. One is unobserved marketing interventions preceding discounts. If advertisements improve the review score, then, by definition, advertisement would be correlated with the treatment variable, moving games a bit closer to transitions. If a discount then follows, as a part of the general marketing plan, rather than to leverage the new proximity to a transition, the positive association between discounting and positive transitions would be spurious. Note, however, that it would be more natural to expect firms to roll out all marketing interventions at the same time (i.e., running a price promotion while the game is advertised). In that case, the threat to identification vanishes.
 
 
-It is instructive to look at the results through the lens of stylized model introduced earlier in the section. Take the products close to a review upgrade first. For such products to choose not to discount the product, the downside risk should be high, or they must have enough reviews to make changing their review score infeasible. Table \ref{potentialTransitionsResults} finds that games with more reviews are indeed less likely to discount, consistent with the idea that discounts are used more often when they can have an effect. As for the size of the downsize risk, it seems intuitive that the risk of review deterioration for a product that is close to upgrading its review label should not be too large. The predictions for games that are close to a review downgrade were more blurred. My findings suggest that reviews left on a discount are not significantly more positive than regular reviews---if it was the case, why would firms choose to stay put and not give a discount? 
+It is instructive to look at the results through the lens of stylized model introduced earlier in the section. Take the products close to a review upgrade first. For such products to choose to not go on a discount, the downside risk of doing so should be high, or they must have enough reviews to make changing their review score infeasible. Both scenarios would appear to be relatively unrealistic ex ante, and my results for firms on the verge of a positive transition comply with that expectation. On the other hand, the predictions for games that are close to a review downgrade were more blurred. It is reasonable to expect such products to dislike variance, unless the upside risk is strong. That would be the case reviews left during a discount are more positive, or if better review labels increase sales by a lot. 
 
-The results I presented in this section, therefore, lead to the following hypothesis: reviews left on a discount are not more positive than the ones left off a discount. This hypothesis has found some support in the prior literature, albeit in a different market. @ByersEtAl12 and @Li16 report that customers who choose to go to a restaurant because of a price promotion tend to leave worse reviews, even though the effect could be positive in certain cases [@Li16; @ZhuEtAl19]. Theoretically, this effect is ambiguous. Consumers who buy when the price is low could be a worse match for the product and, thus, leave worse reviews. At the same time, such customers get a higher utility from paying less, which, together with a desire to reciprocate, can lead them to leave better reviews [@CabralLi15; @IfrachEtAl19; @AcemogluEtAl19]. I now turn my attention to investigating this hypothesis, as doing so would be helpful in assessing the results obtained in this section, and would contribute to the literature by providing evidence from a new market.
+The results I presented in this section, therefore, lead to the following hypothesis: reviews left on a discount are not more positive than the ones left off a discount. If this hypothesis is not true, the lack of discounting by products close to a negative transition would be puzzling. This hypothesis has found some support in the prior literature, albeit in a different market. @ByersEtAl12 and @Li16 report that customers who choose to go to a restaurant because of a price promotion tend to leave worse reviews, even though the effect could be positive in certain cases [@Li16; @ZhuEtAl19]. Theoretically, this effect of buying on a discount on the valence of the review ambiguous. Consumers who buy when the price is low could be a worse match for the product and, thus, leave worse reviews. At the same time, such customers get a higher utility from paying less, which, together with a desire to reciprocate, can lead them to leave better reviews [@CabralLi15; @IfrachEtAl19; @AcemogluEtAl19]. I now turn my attention to investigating this hypothesis, as doing so would be helpful in assessing the results obtained in this section, and would contribute to the literature by providing evidence from a new market.
 
 
 # Selection Effect of Discounts
@@ -907,6 +916,8 @@ Another problem stems from the fact that the purchase date behind a review is no
 # Shifting the variables because I am using lag k = 1
 panel[, disc:=c(shift((discount > 0))), by = ID]
 panel[, lam:=shift(lambda), by = ID]
+panel[is.na(pReviews), pReviews := 0]
+panel[is.na(nReviews), nReviews := 0]
 
 revs <- panel[!(is.na(lam)), .(t, disc, lam, l = c(pReviews[1], diff(pReviews)), d = c(nReviews[1], diff(nReviews))), by=ID]
 revs <- revs[, .(rhoPosD = sum(disc*l) / sum(disc*lam),
@@ -952,6 +963,42 @@ revs[, score.dif := scoreD - scoreND]
 
 rm(Hpos, Hneg, HnegInv, HposInv)
 ```
+
+```{r}
+panel[, disc:=c(shift((discount > 0))), by = ID]
+panel[, lam:=shift(lambda), by = ID]
+panel[is.na(pReviews), pReviews := 0]
+panel[is.na(nReviews), nReviews := 0]
+
+
+revs <- panel[!(is.na(lam)), .(t, disc, lam, l = c(pReviews[1], diff(pReviews)), d = c(nReviews[1], diff(nReviews))), by=ID]
+
+revs.lik <- function(x){
+  revs[, r.plus := x[1] + disc*x[2], by = ID]
+  revs[, r.minus := x[3] + disc*x[4], by = ID]
+  
+  return(list(
+    "objective" = -revs[, sum(l * log(r.plus) - r.plus*lam +  
+                             d * log(r.minus) - r.minus*lam)],
+    "gradient" = -c(revs[, sum(l/r.plus - lam)],
+                   revs[, sum((l/r.plus - lam)*disc)],
+                   revs[, sum(d/r.minus - lam)],
+                   revs[, sum((d/r.minus - lam)*disc)])
+  ))
+}
+
+library(nloptr)
+
+x0 <- c(0.25, 0.0, 0.05, 0.0)
+max.lik <- nloptr(x0, 
+                  revs.lik,
+                  lb = c(0, -1, 0, -1),
+                  ub = c(10, 2, 10, 2),
+                  opts = list(algorithm = "NLOPT_LD_LBFGS"))
+
+x <- max.lik$solution
+```
+
 
 ```{r}
 # Game by game test whether reviews during a discount are more positive 
@@ -1072,7 +1119,8 @@ reg3 <- plm(I(discount>0) ~ rho1*pos.treatment + rho1*neg.treatment +
            data = panel[rho1 <= 2 & rho1 >= -0.5
                         # ID %in% revs[negSignif == T | posSignif == T, ID], 
                         ],
-           model = "within")
+           model="within",
+           index = c("ID", "t"))
 cov<-vcovHC(reg3, method = "white1")
 se3 <- sqrt(diag(cov))
 
@@ -1082,7 +1130,8 @@ reg4 <- plm(I(discount>0) ~ rho1*pos.treatment + rho1*neg.treatment +
            data = panel[rho1 <= 2 & rho1 >= -0.5 & 
                         ID %in% revs[negSignif == T | posSignif == T, ID], 
                         ],
-           model = "within")
+           model="within",
+           index = c("ID", "t"))
 cov<-vcovHC(reg4, method = "white1")
 se4 <- sqrt(diag(cov))
 
@@ -1144,7 +1193,7 @@ reg1 <- plm(new.reviews ~ discNew + discNewLag + discNewLag2 + discNewLag3 + dis
                           discNewLag5 + discNewLag6 + discNewLag7 +
                           negative + mPositive + realPositive + vPositive + ovPositive + 
                           score + log(reviews + 1) + age + young + day + week,
-                          data = panel, model = "within")
+                          data = panel, model="within",             index = c("ID", "t"))
 cov<-vcovHC(reg1, method="white1")
 se1 <- sqrt(diag(cov))
 
@@ -1152,7 +1201,7 @@ reg2 <- plm(I(new.reviews/(pRevRate+nRevRate)) ~ discNew + discNewLag + discNewL
                           discNewLag5 + discNewLag6 + discNewLag7 +
                           negative + mPositive + realPositive + vPositive + ovPositive + 
                           score + log(reviews + 1) + age + young + day + week,
-                          data = panel, model = "within")
+                          data = panel, model="within",             index = c("ID", "t"))
 cov<-vcovHC(reg2, method="white1")
 se2 <- sqrt(diag(cov))
 
@@ -1160,7 +1209,7 @@ reg3 <- plm(score ~ discNew + discNewLag + discNewLag2 + discNewLag3 + discNewLa
                            discNewLag5 + discNewLag6 + discNewLag7 +
                            negative + mPositive + realPositive + vPositive + ovPositive +
                            log(reviews + 1) + age + young + day + week,
-                           data = panel, model = "within")
+                           data = panel, model="within",             index = c("ID", "t"))
 cov<-vcovHC(reg3, method="white1")
 se3 <- sqrt(diag(cov))
 
