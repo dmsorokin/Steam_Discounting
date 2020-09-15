@@ -849,7 +849,7 @@ The results in Table \ref{potentialTransitionsResults} unequivocally support the
 It is reasonable to say that model (\ref{potTransitionsReg}) is able to identify the causal effect of the proximity to a review transition on discounting behavior. As the sample was selected to include only products with the most stable quality and the lowest number of game updates, the path of the review score is relatively exogenous for the firms. Taking its current review score as given, a firm can decide whether to run a price promotion or not, which makes the main independent variables in my analysis exogenous. On top of that, model \ref{potTransitionsReg} includes a rich set of controls and fixed effects. Some threats to identification still remain, of course. One is unobserved marketing interventions preceding discounts. If advertisements improve the review score, then, by definition, advertisement would be correlated with the treatment variable, moving games a bit closer to transitions. If a discount then follows, as a part of the general marketing plan, rather than to leverage the new proximity to a transition, the positive association between discounting and positive transitions would be spurious. Note, however, that it would be more natural to expect firms to roll out all marketing interventions at the same time (i.e., running a price promotion while the game is advertised). In that case, the threat to identification vanishes.
 
 
-It is instructive to look at the results through the lens of stylized model introduced earlier in the section. Take the products close to a review upgrade first. For such products to choose to not go on a discount, the downside risk of doing so should be high, or they must have enough reviews to make changing their review score infeasible. Both scenarios would appear to be relatively unrealistic ex ante, and my results for firms on the verge of a positive transition comply with that expectation. On the other hand, the predictions for games that are close to a review downgrade were more blurred. It is reasonable to expect such products to dislike variance, unless the upside risk is strong. That would be the case reviews left during a discount are more positive, or if better review labels increase sales by a lot. 
+It is instructive to look at the results through the lens of stylized model introduced earlier in the section. Take the products close to a review upgrade first. For such products to choose to not go on a discount, the downside risk of doing so should be high, or they must have enough reviews to make changing their review score infeasible. Both scenarios would appear to be relatively unrealistic ex ante, and my results for firms on the verge of a positive transition comply with that expectation. On the other hand, the predictions for games that are close to a review downgrade were more blurred. It is reasonable to expect such products to dislike variance, unless the upside risk is strong. That would be the case if reviews left during a discount were more positive, or if better review labels increased sales by a lot. 
 
 The results I presented in this section, therefore, lead to the following hypothesis: reviews left on a discount are not more positive than the ones left off a discount. If this hypothesis is not true, the lack of discounting by products close to a negative transition would be puzzling. This hypothesis has found some support in the prior literature, albeit in a different market. @ByersEtAl12 and @Li16 report that customers who choose to go to a restaurant because of a price promotion tend to leave worse reviews, even though the effect could be positive in certain cases [@Li16; @ZhuEtAl19]. Theoretically, this effect of buying on a discount on the valence of the review ambiguous. Consumers who buy when the price is low could be a worse match for the product and, thus, leave worse reviews. At the same time, such customers get a higher utility from paying less, which, together with a desire to reciprocate, can lead them to leave better reviews [@CabralLi15; @IfrachEtAl19; @AcemogluEtAl19]. I now turn my attention to investigating this hypothesis, as doing so would be helpful in assessing the results obtained in this section, and would contribute to the literature by providing evidence from a new market.
 
@@ -965,14 +965,18 @@ rm(Hpos, Hneg, HnegInv, HposInv)
 ```
 
 ```{r}
+# In this module I estimate the average like and dislike rates on and off discount,
+# and I test whether: (a) users leave better reviews on a discount, (b) users leave
+# more reviews during discounts
 panel[, disc:=c(shift((discount > 0))), by = ID]
 panel[, lam:=shift(lambda), by = ID]
-panel[is.na(pReviews), pReviews := 0]
-panel[is.na(nReviews), nReviews := 0]
+panel[is.na(pReviews), pReviews := 0] # remove this, it is already in CreateSample
+panel[is.na(nReviews), nReviews := 0] # remove this, it is already in CreateSample
 
-
+# part of the panel that has new reviews and estimated arrivals
 revs <- panel[!(is.na(lam)), .(t, disc, lam, l = c(pReviews[1], diff(pReviews)), d = c(nReviews[1], diff(nReviews))), by=ID]
 
+# negative of the likelihood function
 revs.lik <- function(x){
   revs[, r.plus := x[1] + disc*x[2], by = ID]
   revs[, r.minus := x[3] + disc*x[4], by = ID]
@@ -987,8 +991,8 @@ revs.lik <- function(x){
   ))
 }
 
+# maximize the likelihood to estimate the parameters
 library(nloptr)
-
 x0 <- c(0.25, 0.0, 0.05, 0.0)
 max.lik <- nloptr(x0, 
                   revs.lik,
@@ -996,7 +1000,74 @@ max.lik <- nloptr(x0,
                   ub = c(10, 2, 10, 2),
                   opts = list(algorithm = "NLOPT_LD_LBFGS"))
 
-x <- max.lik$solution
+theta <- max.lik$solution
+
+# Estimate E[score score']
+sigma.hat <- function(x){
+  revs[, r.plus := x[1] + disc*x[2]]
+  revs[, r.minus := x[3] + disc*x[4]]
+  
+  dt <- revs[, .(s1 = l/r.plus - lam, s2 = (l/r.plus - lam)*disc,
+                 s3 = d/r.minus - lam, s4 = (d/r.minus - lam)*disc)]
+  
+  (as.matrix(transpose(dt)) %*% as.matrix(dt))/(dim(revs)[1]) %>%
+    return()
+}
+
+# Estimate the hessian d(score)/d theta'
+H.hat <- function(x){
+  n <- dim(revs)[1]
+  revs[, r.plus := x[1] + disc*x[2]]
+  revs[, r.minus := x[3] + disc*x[4]]
+  
+  H <- matrix(rep(0, length(x)*length(x)), nrow = length(x))
+  
+  h <- revs[, .(h11 = -l/(r.plus)^2, h12 = -l/(r.plus)^2*disc, h13 = 0, h14 = 0,
+           h21 = -l/(r.plus)^2*disc, h22 = -l/(r.plus)^2*disc^2, h23=0, h24 = 0,
+           h31 = 0, h32 = 0, h33 = -d/(r.minus)^2, h34 = -d/(r.minus)^2*disc,
+           h41 = 0, h42 = 0, h43 = -d/(r.minus)^2*disc, h44 = -d/(r.minus)^2*disc^2)]
+  
+  for (i in 1:n){
+    hi <- h[i] %>% as.matrix() %>% matrix(., nrow =  length(x))
+    H <- H + hi
+  }
+  
+  return(H/n)
+}
+
+# calculate the variance-covariance matrix of theta hat (divided by n)
+sigma <- sigma.hat(theta)
+H <- H.hat(theta)
+H.inv <- solve(H, diag(1, nrow = 4))
+omega <- (H.inv %*% sigma %*% H.inv) / dim(revs)[1]
+
+# Test if the probability to leave a review goes up: 
+# a(theta) = theta2 + theta4
+# Null: a(theta_0) = 0
+A <- matrix(c(0,1,0,1), nrow = 4)
+# t stat
+(theta[2] + theta[4])/sqrt(t(A) %*% omega %*% A)
+
+# Test if the probability to leave a like conditional on review (score) goes up
+# with a discount
+# a(theta) = (theta[1] + theta[3])/(sum(theta)) - theta[1]/(theta[1] + theta[3])
+grad.a <- function(x){
+  
+  sum.x <- sum(x)
+  
+  A1 <- (sum.x - x[1]) / (sum.x)^2 - x[3]/(x[1] + x[3])^2
+  A2 <- (sum.x - x[2]) / (sum.x)^2
+  A3 <- (- x[1] - x[2]) / (sum.x)^2  + x[1]/(x[1] + x[3])^2
+  A4 <- (- x[1] - x[2]) / (sum.x)^2
+  
+  return(c(A1, A2, A3, A4))
+}
+
+A <- grad.a(theta)
+
+score.dif <- (theta[1] + theta[2])/(sum(theta)) - (theta[1])/(theta[1] + theta[3])
+
+score.dif/sqrt(t(A) %*% omega %*% A)
 ```
 
 
