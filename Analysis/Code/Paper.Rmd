@@ -865,26 +865,42 @@ As a preview of results, I do find that customers are significantly more likely 
 ## Review Model
 
 
-Every buyer of game $i$ is a potential reviewer. I assume that a buyer who buys the game at $t-k$ leaves a positive (negative) review for the game on day $t$ with probability \(r_{it}^+\)	 (\(r_{it}^-\)), and no review otherwise. For the reasons I will explain later, I will refer to  $r_{it}^+$ as the *like rate*, and to $r_{it}^-$ as the *dislike rate*.  The focus of the analysis is on the difference between the reviews left on and off a discount. To that end, I parametrize the like and dislike rates to depend on the discounting behavior of the firm as follows.
+Every buyer of game $i$ is a potential reviewer. I assume that a buyer who buys the game at $t-k$ leaves a positive (negative) review for the game on day $t$ with probability \(r_{it}^+\)	 (\(r_{it}^-\)), and no review otherwise. For the reasons I will explain later, I will refer to  $r_{it}^+$ as the *like rate*, and to $r_{it}^-$ as the *dislike rate*.  The focus of the analysis is on the difference between the reviews left on and off a discount. To that end, I parametrize the like and dislike rates to depend on the discounting behavior of the firm and other covariates as  as follows.
 
 \begin{assumption}\label{likeDiscountAss}
-The like rate is a linear function of covariates $w_{it} = [1, disc_{it}, \ldots]'$:
+The like rate is a linear function of covariates $w_{it} = [1, disc_{it-k}, \ldots]'$:
 $r_{it}^+ = w_{it}'\rho_i^+$.  The dislike rate is a linear function of covariates: $r_{it}^- = w_{it}'\rho_i^-$.
 \end{assumption}
 
-In the simplest specification I use $w_{it} = [1, disc_{it}]'$, $\forall i: \rho_i^+ = \rho^+$,  implying $r_{it}^+ = \rho^+_0 + disc_{it}\rho^+_1$, which simply says that buyers of all games leave a positive reviews with one of two possible probabilities: $\rho^+_0$ off a discount, and $\rho^+_0 + \rho^+_1$ on a discount. Similarly, a probability of a negative review could be either $\rho^-_0$, or $\rho^-_0 + \rho^-_1$. While the model with no heterogeneity in parameters is not very realistic (for one, it implies that all games have the same expected review score), I treat the estimates that will come out of it as estimates of average parameter values: $\rho^+ \approx \bar{\rho}_i^+$, $\rho^- \approx \bar{\rho}_i^-$. Thus, a model without heterogeneiry offers a simple way to do inference on the average values of parameters in the population of games. 
+In the simplest specification I use $w_{it} = [1, disc_{it-k}]'$, $\forall i: \rho_i^+ = \rho^+$,  implying $r_{it}^+ = \rho^+_0 + disc_{it}\rho^+_1$, which simply says that buyers of all games leave a positive reviews with one of the two possible probabilities: $\rho^+_0$ off a discount, and $\rho^+_0 + \rho^+_1$ on a discount. Similarly, a probability of a negative review could be either $\rho^-_0$, or $\rho^-_0 + \rho^-_1$. While the model with no heterogeneity in parameters is not very realistic (for one, it implies that all games have the same expected review score), I treat the estimates that will come out of it as estimates of average parameter values: $\rho^+ \approx \bar{\rho}_i^+$, $\rho^- \approx \bar{\rho}_i^-$. Thus, a model without heterogeneity offers a simple way to do inference on the average values of parameters in the population of games. 
 
-As I explained in the introduction, I want to know if consumers are more likely to leave a review if they buy on a discount. This amounts to testing $\rho^+_0 + \rho^+_1 + \rho^-_0 + \rho^-_1 > \rho^+_0 + \rho^-_0$, or
-\begin{equation}\label{hypProbReview}
-  \rho^+_1 + \rho^-_1 > 0
+In the introduction to this section I outlined two hypotheses I want to test. First, I want to know if consumers are more likely to leave a review if they buy on a discount. This amounts to testing $\rho^+_0 + \rho^+_1 + \rho^-_0 + \rho^-_1 > \rho^+_0 + \rho^-_0$, or
+\begin{align}\label{hyp1}
+H_0: &  \rho^+_1 + \rho^-_1 > 0 \\
+H_1: &  \rho^+_1 + \rho^-_1 \le 0
+\end{align}
+
+The second hypothesis I am interested in involves the sentiment of the reviews left on and off a discount. Product's review score measures the fraction of positive reviews among all reviews left, reflecting the probability to get a good review conditional on having a review. Indeed, if $L_t \in \{0, 1\}$ is a random variable that takes the value of 1 if the $i$-th review is a like, then the review score based on $T$ reviews would simply be $Score(T) = \frac 1 T \sum_{t=1}^T L_t$, which converges to $\EE{L_t} = \PP{L_t = 1}$ as $T$ grows to infinity. For a user buying a game off a discount we have
+\begin{equation}
+\PP{L_t = 1} = \CP{"Like"}{"Review"} = \frac{\rho^+_{0}}{\rho^+_{0} + \rho^-_{0}}
 \end{equation}
-\noindent The second hypothesis I am interested in involves the sentiment of the reviews left on and off a discount. Product's review score measures the fraction of positive reviews among all reviews left, reflecting the probability to get a good review conditional on having a review. Formally, the expected review score of a game that never discounts is
-$$\EE{Score_{it}} = $$
+
+\noindent For a user buying the same game on a discount we have
+\begin{equation}
+\PP{L_t = 1} = \CP{"Like"}{"Review"} = \frac{\rho^+_{0} + \rho^+_{1}}{\rho^+_{0} + \rho^+_{1} + \rho^-_{0} + \rho^-_{1}}
+\end{equation}
+
+\noindent The second hypothesis can now be formulated as follows: the expected review score on a discount is not higher than the expected review score off a discount. Formally, we have
+\begin{align}\label{hyp2}
+H_0: &  \frac{\rho^+_{0}}{\rho^+_{0} + \rho^-_{0}} - \frac{\rho^+_{0} + \rho^+_{1}}{\rho^+_{0} + \rho^+_{1} + \rho^-_{0} + \rho^-_{1}} > 0 \\
+H_1: &  \frac{\rho^+_{0}}{\rho^+_{0} + \rho^-_{0}} - \frac{\rho^+_{0} + \rho^+_{1}}{\rho^+_{0} + \rho^+_{1} + \rho^-_{0} + \rho^-_{1}}  \le 0
+\end{align}
 
 
-### Review Parameters
 
-The part of the model describing the reviewing behavior of the buyers is more starightforward. Intuitively, the propensity to leave a review on and off a discount (the like and dislike rates $r_{it}^+$, $r_{it}^-$) are identified by the differences in reviews left on and off a discount. In fact, this intuition becomes a rigorous proof, as wil be shown shortly.
+## Identification
+
+To make my identificaiton argument I will focus on the case of just two regressors, $w_{it} = [1, disc_{it-k}]$, and heterogeneous parameters $\rho_i^+$, $\rho_i^-$. From this analysis it will become clear how I am able to identify $\rho$'s on a game-by-game basis, and how more regressors could be accommodated. Intuitively, the propensity to leave a review on and off a discount (the like and dislike rates $r_{it}^+$, $r_{it}^-$) are identified by the differences in reviews left on and off a discount. In fact, this intuition becomes a rigorous proof, as will be shown shortly. The proof will also highlight the importance of having estimated the arrival rates of consumers.
 
 Following assumption \ref{arrivalAssumptions}, the arrival of buyers for game $i$ on day $t$ follows a Poisson distribution with arrival rate $\lambda_{it} = \lambda_i (1 + x_{it}'\beta)$. I also assumed that, $k$ days later, each consumer leaves a  positive review with probability $r_{it}^+$, a negative review with probability $r_{it}^-$, and no review otherwise. Then, the following proposition is true:
 \begin{proposition}\label{poissonReviews}
@@ -896,7 +912,7 @@ Proposition \ref{poissonReviews} allows one to easily write down the likelihood 
 \ell(g_i; r_{it}^+, \lambda_{it-k}) = \sum_{t\ge k} g_{it} \log r_{it}^+\lambda_{it-k} - r_{it}^+\lambda_{it-k} - \log g_{it}!
 \end{equation}
 
-I treat $\lambda_{it}$ as known, because parameters $\lambda_{i}$ and $\beta$ that determine it can be estimated consistently for the majority of games in the sample, given the long time dimension of the panel. For now I also take the lag $k$ between the time when the user buys the game and leaves a review for the game to be known. The parameters of interest are $(\rho_{0i}^+, \rho_{1i}^+)$, which parametrize the like rate as $r_{it}^+ = \rho_{0i}^+ + \rho_{1i}^+ disc_{it-k}$. The likelihood is concave in the parameters, so the parameters are identified as the maximizer of the likelihood. Restricting attention to a binary discount variable $disc_{it}$ allows me to derive a closed-form estimator for $(\rho_{0i}^+, \rho_{1i}^+)$. During a discount the like rate of game $i$ is $\rho_{0i}^+ + \rho_{1i}^+$, which is consistently estimated as
+For simplicity, I treat $\lambda_{it} = \lambda_i (1 + x_{it}'\beta)$ as known, rather than aknowledging the fact that I only have estimates $\hat{\lambda}_{it} = \hat \lambda_i (1 + x_{it}'\hat \beta)$. By the virtue of observing the majority of the games for many periods, the estimates of $\lambda_i$ should be relatively precise; estimates of $\beta$ were estimated using all the observations in the sample, and should be relatively precise as well. For now I also take the lag $k$ between the time when the user buys the game and leaves a review for the game to be known. The parameters of interest are $(\rho_{0i}^+, \rho_{1i}^+)$, which parametrize the like rate as $r_{it}^+ = \rho_{0i}^+ + \rho_{1i}^+ disc_{it-k}$. The likelihood is concave in the parameters, so the parameters are identified as the maximizer of the likelihood. Restricting attention to a binary discount variable $disc_{it}$ allows me to derive a closed-form estimator for $(\rho_{0i}^+, \rho_{1i}^+)$, which is convenient and illustrates the source of identification better. During a discount the like rate of game $i$ is $\rho_{0i}^+ + \rho_{1i}^+$, which is consistently estimated as
 \begin{equation}\label{rhohat1}
 \hat \rho_{0i}^+ + \hat\rho_{1i}^+ = \frac{\sum_{t \ge k} disc_{it-k}g_{it}}{\sum_{t\ge k} disc_{it-k}\lambda_{it-k}},
 \end{equation}
@@ -904,20 +920,19 @@ As we can see, the ML-estimator of the like rate during a price promotion is jus
 \begin{equation}\label{rhohat2}
 \hat \rho_{0i}^+ = \frac{\sum_{t\ge k} (1-disc_{it-k})g_{it}}{\sum_{t\ge k} (1-disc_{it-k})\lambda_{it-k}},
 \end{equation}
-with the interpretation that the like rate in the absence of a discount is just a ratio of the reviews left outside of a discount and the expected number of customers outside a discount.
+with the interpretation that the like rate in the absence of a discount is just a ratio of the reviews left outside of a discount and the expected number of customers outside a discount. Notice that identification of these parameters requires the knowledge of the demand parameters $\lambda_{it}$, highlighting the point I made earlier: seeing more good reviews arriving on a discount is not sufficient to conclude whether customers are more likely to leave positive reviews when purchasing during a discount. One need to know how many more customers are buying because of the aforementioned discount. 
 
-Note that one can use these estimators to estimate the *average review score* on and off a discount, i.e., whether users are relatively more or less likely to leave a good review during a discount. For example, without a price promotion, one obtains
+My second hypothesis, formulated in (\ref{hyp2}), involves the sentiment of the reviews left on and off a price promotion. Intuitively, one should be able to detect a change in the valence of reviews during a price promotion by simply comparing the ratios of good to bad reviews on and off a discount. In particular, the answer should not depend on any information on the absolute sales. Indeed, if we plug  in the estimators from (\ref{rhohat1})-(\ref{rhohat2}) into the expression for the expected review score off a discount from (\ref{hyp2}), we can see that our inference here will not depend on the estimates of the demand parameters in $\lambda_{it}$:
 \begin{equation}\label{avReviewScore}
-\frac{\sum_{t\ge k} (1-disc_{it-k})g_{it}}{\sum_{t\ge k} (1-disc_{it-k})g_{it} + \sum_{t\ge k} (1-disc_{it-k})b_{it}}
-=
 \frac{\hat \rho_{0i}^+}{\hat \rho_{0i}^+  + \hat \rho_{0i}^- }
+=
+\frac{\sum_{t\ge k} (1-disc_{it-k})g_{it}}{\sum_{t\ge k} (1-disc_{it-k})g_{it} + \sum_{t\ge k} (1-disc_{it-k})b_{it}}
 \end{equation}
-It is intuitively clear that the relative propensity to leave a good, rather than a bad, review should be easily estimable by comparing the ratios of good to bad reviews, without any knowledge of the quantity of games sold. This intuition is fully reflected in Equation (\ref{avReviewScore}), where the arrival rates $\lambda_{it-k}$ have disappeared entirely.
+The estimator off the review score off a discount simply calculates the average of the positive reviews left off a discount among all the reviews left off a discount, confirming our intuition.
 
+The analysis above is complicated by two facts. First, for each game I observe the exact review count, but my demand estimates only apply to rush hours. For a sake of example, assume that every buyer leaves a review. Suppose also that every day there are two new buyers who play in the morning, and three new buyers who play in the evening, who abandone the game after just one day. My data would register 3 players leaving 5 reviews on a daily basis. This is the reason why I refer to the values of $(r_{it}^+, r_{it}^-)$ as rates, rather than probabilities (which they are in the model). Proposition \ref{poissonReviews}, stating that the number of good reviews on day $t$ for game $i$ is a Poisson random variable with rate $r_{it}^+\lambda_{it-k}$, could be treated as an assumption, rather than a result. In that case, nothing constrains the $r_{it}^+$ parameter to be less than 1, and the identification argument goes through in exactly the same way.
 
-The analysis above is complicated by two facts. First, for each game I observe the exact review count, but my demand estimates only apply to rush hours. If, say, every player leaves a review, and every day there are two new players who play in the morning, and three new players who play in the evening, my data would register 3 players leaving 5 reviews on a daily basis. This is the reason why I refer to the values of $(r_{it}^+, r_{it}^-)$ as rates, rather than probabilities (which they are in the model). Propositon \ref{poissonReviews}, stating that the number of good reviews on day $t$ for game $i$ is a Poisson random variable with rate $r_{it}^+\lambda_{it-k}$, could be treated as an assumption, rather than a result. In that case, nothing constrains the $r_{it}^+$ parameter to be less than 1, and the identification argument goes through in the exactly the same way.
-
-Another problem stems from the fact that the purchase date behind a review is not available to the researcher. For that reason, the model features an additional parameter $k$, the lag between purchasing the game and leaving a review, that I assumed to be known. To estimate that parameter I leverage the fact that spikes in player activity on the first day of a sale represent new users, and study the review response during the following week in order to uncover the modal lag for leaving a review (see Table \ref{reviewLag} in the Appendix). This number turns out to be one day. Even though time to posting a review has a non-degenerate distribution, modelling it in a more nuanced way would significantly contribute to complexity: the likelihood of receiving a poisitive review on day 100 would depend on the entire history of buyer arrivals prior to that date. Therefore, I proceed using $\hat k = 1$.
+Another problem stems from the fact that the purchase date behind a review is not available to the researcher. For that reason, the model features an additional parameter $k$, the lag between purchasing the game and leaving a review, that I assumed to be known. To estimate this parameter I leverage the fact that spikes in player activity on the first day of a sale represent new users, and study the review response during the following week in order to uncover the modal lag for leaving a review (see Table \ref{reviewLag} in the Appendix). This number turns out to be one day. Even though time to posting a review has a non-degenerate distribution, modeling it in a more nuanced way would significantly contribute to complexity: the likelihood of receiving a positive review on day 100 would depend on the entire history of buyer arrivals prior to that date. Therefore, I proceed using $\hat k = 1$.
 
 
 ### Review Parameters
