@@ -59,6 +59,7 @@ library(plm)
 library(stargazer)
 library(starpolishr) # install by devtools::install_github("ChandlerLutz/starpolishr")
 library(texreg)
+library(nloptr)
 
 knitr::opts_chunk$set(echo=F,eval=T,message=F,warning=F,comment=NA,cache=T)
 knitr::opts_chunk$set(fig.pos = "htp", out.extra = "", fig.align = "center")
@@ -625,6 +626,7 @@ ggarrange(p1, p2, nrow=2, align = "v")
 \label{descriptiveEvidence}
 
 ## Stylized Model
+\label{stylizedModel}
 
 Consider a firm that has a review status $s \in (0, 1)$. A firm can give a discount at cost $c$ that can probabilistically change its status to exceed 1 (an upgrade), to go below 0 (a downgrade), or to remain within the $(0,1)$ band (no change). The result depends on whether the additional customers who buy the product on a discount happen to leave more positive or more negative reviews, and on the  weight of hte new reviews relative to the existing ones. Assume that with probability $p$ the firm's status becomes $s+x$, and with probability $1-p$ it becomes $s-x$. Firm's utility $u(s)$ from having a review status $s \in (0,1)$ is 0, while it earns a utility $u^H$ from the upgraded status and a utility $u^L < 0 < u^H$ from the downgraded status. The expected utility from giving a discount is 
 \begin{equation}
@@ -857,9 +859,9 @@ The results I presented in this section, therefore, lead to the following hypoth
 
 In the previous section I established two key facts. First, I found that firms are more likely to go on a discount when their products are close to upgrading their review bin. Second, I did not find any change in the discounting behavior for products that are close to downgrading their review bins. My theory of disconting in the face of review transitions, applied to these findings, implies that reviews left during a discount can not be significantly better than regular reviews, as otherwise the lack of discounting by products close to a review downgrade is puzzling. But if reviews obtained during a discount are not very different from the regular reviews, it has to be the case that discounts fascilitate the arrival of reviews, providing firms with extra variance when they want to speed things up. Otherwise, discounting by firms close to a positive transition would be puzzling. In this section I investigate if these two hypotheses about the valence and quantity of reviews left during price promotions hold in data.
 
-To formulate and test these hypotheses, I complement my model of demand and gaming on Steam introduced in Section \ref{demandSection} by a model of reviewing behavior. A formal model of reviewing behavior is necessary for several reasons. First, a structural model allows me to explicitly introduce the parameters of interest--probabilities of leaving a good or a bad reviews on and off a discount. Second, more importantly, the model will allow me to use my estimates of the demand process to make statements about the absolute change in probability of leaving a review that is due to the discount. One does not need a model to check if more reviews are left during a price promotion--a simple comparison of means would do. However, since sales are unobserved, it is impossible to say if the new reviews are entirely due to the influx of new customers, or part of it could be explained by an increased willingness to leave a review during a discount. I use my model to estimate sales, and therefore I can make inference on the propensity to leave a review. Note that most studies studying reviewing behavior do not observe anything close to daily sales, and thus could not possibly have indentified the effects I am interested here. 
+To formulate and test these hypotheses, I complement my model of demand and gaming on Steam introduced in Section \ref{demandSection} by a model of reviewing behavior. A formal model of reviewing behavior is necessary for several reasons. First, a structural model allows me to explicitly introduce the parameters of interest--probabilities of leaving a good or a bad reviews on and off a discount. Second, more importantly, the model will allow me to use my estimates of the demand process to make statements about the absolute change in probability of leaving a review that is due to the discount. One does not need a model to check if more reviews are left during a price promotion--a simple comparison of means would do. However, since sales are unobserved, it is impossible to say if the new reviews are entirely due to the influx of new customers, or part of it could be explained by an increased willingness to leave a review during a discount. I use my model to estimate sales, and therefore I can make inference on the propensity to leave a review. Note that most studies studying reviewing behavior do not observe anything close to daily sales, and thus could not possibly have identified the effects I am interested here. 
 
-As a preview of results, I do find that customers are significantly more likely to review a product if they purchase it during a price promotion, albeit the valence of the reviews is unaffected, on average. In other words, I provide evidence that, in my data, the negative selection effect of lower prices on the type of customers leaving reviews that has been documented in the literature does not outweigh the direct effect of lower prices on their satisfaction and their review decision. I then proceed to allow firms in my sample to be heterogeneous in the probabilities of recieving positive and negative reviews on and off discount. I check if firms whose customers are particularly likely to leave a like during a discount are more likely to discount, and I find some support for this hypothesis.
+As a preview of results, I do find that customers are significantly more likely to review a product if they purchase it during a price promotion, albeit the valence of the reviews is unaffected, on average. In other words, I provide evidence that, in my data, the negative selection effect of lower prices on the type of customers leaving reviews that has been documented in the literature does not outweigh the direct effect of lower prices on their satisfaction and their review decision. I then proceed to allow firms in my sample to be heterogeneous in the probabilities of receiving positive and negative reviews on and off discount. I check if firms whose customers are particularly likely to leave a like during a discount are more likely to discount, and I find some support for this hypothesis.
 
 
 ## Review Model
@@ -876,8 +878,8 @@ In the simplest specification I use $w_{it} = [1, disc_{it-k}]'$, $\forall i: \r
 
 In the introduction to this section I outlined two hypotheses I want to test. First, I want to know if consumers are more likely to leave a review if they buy on a discount. This amounts to testing $\rho^+_0 + \rho^+_1 + \rho^-_0 + \rho^-_1 > \rho^+_0 + \rho^-_0$, or
 \begin{align}\label{hyp1}
-H_0: &  \rho^+_1 + \rho^-_1 > 0 \\
-H_1: &  \rho^+_1 + \rho^-_1 \le 0
+H_0: &  \rho^+_1 + \rho^-_1 \le 0 \\
+H_1: &  \rho^+_1 + \rho^-_1 > 0
 \end{align}
 
 The second hypothesis I am interested in involves the sentiment of the reviews left on and off a discount. Product's review score measures the fraction of positive reviews among all reviews left, reflecting the probability to get a good review conditional on having a review. Indeed, if $L_t \in \{0, 1\}$ is a random variable that takes the value of 1 if the $i$-th review is a like, then the review score based on $T$ reviews would simply be $Score(T) = \frac 1 T \sum_{t=1}^T L_t$, which converges to $\EE{L_t} = \PP{L_t = 1}$ as $T$ grows to infinity. For a user buying a game off a discount we have
@@ -892,8 +894,8 @@ The second hypothesis I am interested in involves the sentiment of the reviews l
 
 \noindent The second hypothesis can now be formulated as follows: the expected review score on a discount is not higher than the expected review score off a discount. Formally, we have
 \begin{align}\label{hyp2}
-H_0: &  \frac{\rho^+_{0}}{\rho^+_{0} + \rho^-_{0}} - \frac{\rho^+_{0} + \rho^+_{1}}{\rho^+_{0} + \rho^+_{1} + \rho^-_{0} + \rho^-_{1}} > 0 \\
-H_1: &  \frac{\rho^+_{0}}{\rho^+_{0} + \rho^-_{0}} - \frac{\rho^+_{0} + \rho^+_{1}}{\rho^+_{0} + \rho^+_{1} + \rho^-_{0} + \rho^-_{1}}  \le 0
+H_0: &  \frac{\rho^+_{0} + \rho^+_{1}}{\rho^+_{0} + \rho^+_{1} + \rho^-_{0} + \rho^-_{1}} - \frac{\rho^+_{0}}{\rho^+_{0} + \rho^-_{0}} \le 0 \\
+H_1: & \frac{\rho^+_{0} + \rho^+_{1}}{\rho^+_{0} + \rho^+_{1} + \rho^-_{0} + \rho^-_{1}} - \frac{\rho^+_{0}}{\rho^+_{0} + \rho^-_{0}} > 0
 \end{align}
 
 
@@ -928,14 +930,168 @@ My second hypothesis, formulated in (\ref{hyp2}), involves the sentiment of the 
 =
 \frac{\sum_{t\ge k} (1-disc_{it-k})g_{it}}{\sum_{t\ge k} (1-disc_{it-k})g_{it} + \sum_{t\ge k} (1-disc_{it-k})b_{it}}
 \end{equation}
-The estimator off the review score off a discount simply calculates the average of the positive reviews left off a discount among all the reviews left off a discount, confirming our intuition.
+The estimator of the review score off a discount simply calculates the average of the positive reviews left off a discount among all the reviews left off a discount, confirming our intuition.
 
 The analysis above is complicated by two facts. First, for each game I observe the exact review count, but my demand estimates only apply to rush hours. For a sake of example, assume that every buyer leaves a review. Suppose also that every day there are two new buyers who play in the morning, and three new buyers who play in the evening, who abandone the game after just one day. My data would register 3 players leaving 5 reviews on a daily basis. This is the reason why I refer to the values of $(r_{it}^+, r_{it}^-)$ as rates, rather than probabilities (which they are in the model). Proposition \ref{poissonReviews}, stating that the number of good reviews on day $t$ for game $i$ is a Poisson random variable with rate $r_{it}^+\lambda_{it-k}$, could be treated as an assumption, rather than a result. In that case, nothing constrains the $r_{it}^+$ parameter to be less than 1, and the identification argument goes through in exactly the same way.
 
 Another problem stems from the fact that the purchase date behind a review is not available to the researcher. For that reason, the model features an additional parameter $k$, the lag between purchasing the game and leaving a review, that I assumed to be known. To estimate this parameter I leverage the fact that spikes in player activity on the first day of a sale represent new users, and study the review response during the following week in order to uncover the modal lag for leaving a review (see Table \ref{reviewLag} in the Appendix). This number turns out to be one day. Even though time to posting a review has a non-degenerate distribution, modeling it in a more nuanced way would significantly contribute to complexity: the likelihood of receiving a positive review on day 100 would depend on the entire history of buyer arrivals prior to that date. Therefore, I proceed using $\hat k = 1$.
 
 
-### Review Parameters
+## Estimation and Inference
+
+
+```{r}
+# In this module I estimate the average like and dislike rates on and off discount,
+# and I test whether: (a) users leave better reviews on a discount, (b) users leave
+# more reviews during discounts
+
+# preparation for formatting the estimates in a table
+texregObjects <- list()
+gofnames <- c("Observations")
+
+
+review.lag <- 1
+panel[, disc:=c(shift((discount > 0), review.lag)), by = ID] # reflecting k = 1
+panel[, lam:=shift(lambda, review.lag), by = ID]
+panel[is.na(pReviews), pReviews := 0] # remove this, it is already in CreateSample
+panel[is.na(nReviews), nReviews := 0] # remove this, it is already in CreateSample
+
+# part of the panel that has new reviews and estimated arrivals
+revs <- panel[!(is.na(lam)), .(t, lam, l = c(pReviews[1], diff(pReviews)), 
+                               d = c(nReviews[1], diff(nReviews)), const = 1, 
+                               zero = 0 ), by=ID]
+
+regressors <- c("disc")
+revs <- merge(revs, panel[!(is.na(lam)), c("ID", "t", regressors), with = F],
+              by = c("ID", "t"))
+
+# NOTE: the first two regressors have to be "const" and "disc"
+regressors <- c("const", regressors)
+k <- length(regressors)
+
+# maximize the likelihood to estimate the parameters
+x0 <- c(c(0.25, rep(0, k-1)), c(0.25, rep(0, k-1)))
+max.lik <- nloptr(x0, 
+                  revs.lik,
+                  lb = rep(0, 2*k),
+                  ub = rep(2, 2*k),
+                  opts = list(algorithm = "NLOPT_LD_LBFGS"))
+
+theta1 <- max.lik$solution
+
+# calculate the variance-covariance matrix of theta hat (asymptotic divided by n)
+sigma <- sigma.hat(theta1)
+H <- H.hat(theta1)
+H.inv <- solve(H, diag(1, nrow = (2*k)))
+omega1 <- (H.inv %*% sigma %*% H.inv) / dim(revs)[1]
+
+# Test if the probability to leave a review goes up: 
+# a(theta) = theta[2] + theta[2+k]
+# Null: a(theta_0) = 0
+A <- rep(0, 2*k)
+A[2] <- 1
+A[2+k] <- 1
+# t stat
+t1.1 <- (theta1[2] + theta1[2+k])/sqrt(t(A) %*% omega1 %*% A)
+
+# Test if the probability to leave a like conditional on review (score) goes up
+# with a discount
+# a(theta) = (theta[1] + theta[1+k])/(sum(theta[c(1,2,1+k,2+k)])) - theta[1]/(theta[1] + theta[1+k])
+A <- grad.a(theta1)
+score.dif <- (theta1[1] + theta1[2])/(sum(theta1[c(1,2,1+k,2+k)])) - 
+             (theta1[1])/(theta1[1] + theta1[1+k])
+t2.1 <- score.dif/sqrt(t(A) %*% omega1 %*% A)
+
+# Append to the output table
+pvalues <- 2*(1-pnorm(theta1/sqrt(diag(omega1))))
+tr <- createTexreg(coef = theta1,
+                   coef.names = c("Prob. of Like", "Discount on Like", 
+                                  "Prob. of Dislike", "Discount on Dislike"),
+                   se = sqrt(diag(omega1)),
+                   pvalues = pvalues,
+                   gof.names = gofnames,
+                   gof = c(dim(revs)[1]))
+texregObjects[1] <- list(tr)
+
+
+# ~ SECOND SPECIFICATION
+# part of the panel that has new reviews and estimated arrivals
+revs <- panel[!(is.na(lam)), .(t, lam, l = c(pReviews[1], diff(pReviews)), 
+                               d = c(nReviews[1], diff(nReviews)), const = 1, 
+                               zero = 0 ), by=ID]
+
+regressors <- c("disc", "young", "age")
+revs <- merge(revs, panel[!(is.na(lam)), c("ID", "t", regressors), with = F],
+              by = c("ID", "t"))
+revs[, old := age >= 365][, age := NULL]
+# NOTE: the first two regressors have to be "const" and "disc"
+regressors <- c("const", "disc", "young", "old")
+k <- length(regressors)
+
+# maximize the likelihood to estimate the parameters
+x0 <- c(c(0.25, rep(0, k-1)), c(0.25, rep(0, k-1)))
+max.lik <- nloptr(x0, 
+                  revs.lik,
+                  lb = c(0, 0, 0, -0.1, 0, 0, 0, -0.1),
+                  ub = rep(2, 2*k),
+                  opts = list(algorithm = "NLOPT_LD_LBFGS"))
+
+theta2 <- max.lik$solution
+
+# calculate the variance-covariance matrix of theta hat (asymptotic divided by n)
+sigma <- sigma.hat(theta2)
+H <- H.hat(theta2)
+H.inv <- solve(H, diag(1, nrow = (2*k)))
+omega2 <- (H.inv %*% sigma %*% H.inv) / dim(revs)[1]
+
+# Test if the probability to leave a review goes up: 
+# a(theta) = theta[2] + theta[2+k]
+# Null: a(theta_0) = 0
+A <- rep(0, 2*k)
+A[2] <- 1
+A[2+k] <- 1
+# t stat
+t1.2 <- (theta2[2] + theta2[2+k])/sqrt(t(A) %*% omega2 %*% A)
+
+# Test if the probability to leave a like conditional on review (score) goes up
+# with a discount
+# a(theta) = (theta[1] + theta[1+k])/(sum(theta[c(1,2,1+k,2+k)])) - theta[1]/(theta[1] + theta[1+k])
+A <- grad.a(theta2)
+score.dif <- (theta2[1] + theta2[2])/(sum(theta2[c(1,2,1+k,2+k)])) - 
+             (theta2[1])/(theta2[1] + theta2[1+k])
+t2.2 <- score.dif/sqrt(t(A) %*% omega2 %*% A)
+
+# Append to the output table
+pvalues <- 2*(1-pnorm(theta2/sqrt(diag(omega2))))
+tr <- createTexreg(coef = theta2,
+                   coef.names = c("Prob. of Like", "Discount on Like", 
+                                  "Young on Like", "Old on Like", 
+                                  "Prob. of Dislike", "Discount on Dislike",
+                                  "Young on Dislike", "Old on Dislike"),
+                   se = sqrt(diag(omega2)),
+                   pvalues = pvalues,
+                   gof.names = gofnames,
+                   gof = c(dim(revs)[1]))
+texregObjects[2] <- list(tr)
+```
+I start off by estimating the average probabilities of leaving a good and a bad review in the population, and by using the estimates to test hypotheses formulated in (\ref{hyp1}) and (\ref{hyp2}). I use two sets of covariates to explain these probabilites. The baseline set of covariates, $w_{it} = [1, disc_{it-k}]'$, only allows the probability of a like or a dislike to change if a discount is in place. The theory behind this choice is that reviews reflect the average perception of quality by the consumers. As my sample was selected to only include products with constant quality, this perception should only change if different types of consumers are buying the product. Consumers buying on a discount are paying a lower price, and thus could be different from consumers paying the whole price. This is the selection effect of discounts on reviews. I also acknowledge the possibility that there could be a selection over time, when early buyers are very different from the late buyers. Similarly, the perception of quality might be deteriorating over time as new games, with potentially better characteristics, are coming out. For this reason, the second set of covariates also adds two variables measuring age: $w_{it} = [1, disc_{it-k}, young_{it}, old_{it}]'$, where $young_{it}$ is a dummy indicating that the game is less than 2 weeks old, and $old_{it}$ is a dummy indicating that the game is more than a year old. The estimates are presented in Table \ref{reviewEstimates}.
+
+
+```{r}
+table <- texreg(texregObjects,
+                stars = c(0.01, 0.05, 0.1),
+                digits = 3,
+                custom.model.names = c("(1)", "(2)"),
+                caption = "Estimates of the Review Parameters",
+                caption.above = T,
+                label = "reviewEstimates")
+```
+
+
+Given the constraints on my data, it is hard to tell if the estimates that I obtain over- or underestimate the true probabilities of leaving a review. On the one hand, I can only estimate sales for a fraction of players, and thus the probability to leave a review could be severely overestimated. On the other hand, my model assumes that a user can only leave a review on the next day after she purchases the product, so my estimates do not reflect the possibility that a user can leave a review at a later date. This, potentially, can underestimate the probability with which consumers leave reviews, especially during a discount\footnote{Reviews arriving more than one day after the discount is over will not be counted towards reviews left during discount}. Thus, my estimates are better suited for making relative statements about the probabilities of interest. 
+
+Setting aside the aforementioned issues, my results suggest that a typical user on Steam leaves a positive review with a probability around `r round(theta1[1]*100)`%, and leaves a negative review with a probability around `r theta1[3]*100`%. Discounts appear to increase both probabilities, implying that users seem to be more likely to leave a review during a discount. I formally test this hypothesis, stated in (\ref{hyp1}), and I strongly reject the null that users are less likely to leave reviews when buying on a discount in favor of the alternative that they are more likely to leave reviews when buying on a discount (the values of the $t$-stats are `r round(t1.1[1],2)` and `r round(t1.2[1],2)` in the two specifications). My second hypothesis, stated in (\ref{hyp2}), is that reviews are less positive during a discount than they are outside the discount. I fail to reject the null in favor of the alternative that reviews left during a price promotion are more positive (the $p$-values are `r round(1-pnorm(t2.1[1]),2)` and `r round(1-pnorm(t2.2[1]),2)`). As we can see, there is no disagreement across specifications on both hypotheses, giving me confidence that this result is robust. As for the age controls,  I find that users are more likely to leave reviews in the first two weeks, but, somewhat surprisingly, do not lose steam as the game becomes older. Both findings are in accordance with the patterns or reviewing dynamics depicted in Figure \ref{reviewDescriptivePlots}.
+
 
 
 ```{r}
@@ -943,13 +1099,6 @@ Another problem stems from the fact that the purchase date behind a review is no
 # in the text, rho_0i^+ and rho_1i^+, but the variance matrix is
 # calculated for the original parameters
 
-# Shifting the variables because I am using lag k = 1
-panel[, disc:=c(shift((discount > 0))), by = ID]
-panel[, lam:=shift(lambda), by = ID]
-panel[is.na(pReviews), pReviews := 0]
-panel[is.na(nReviews), nReviews := 0]
-
-revs <- panel[!(is.na(lam)), .(t, disc, lam, l = c(pReviews[1], diff(pReviews)), d = c(nReviews[1], diff(nReviews))), by=ID]
 revs <- revs[, .(rhoPosD = sum(disc*l) / sum(disc*lam),
                  rhoPosND = sum((1-disc)*l) / sum((1-disc)*lam),
                  rhoNegD = sum(disc*d) / sum(disc*lam),
@@ -994,293 +1143,95 @@ revs[, score.dif := scoreD - scoreND]
 rm(Hpos, Hneg, HnegInv, HposInv)
 ```
 
-```{r}
-# In this module I estimate the average like and dislike rates on and off discount,
-# and I test whether: (a) users leave better reviews on a discount, (b) users leave
-# more reviews during discounts
-panel[, disc:=c(shift((discount > 0))), by = ID]
-panel[, lam:=shift(lambda), by = ID]
-panel[is.na(pReviews), pReviews := 0] # remove this, it is already in CreateSample
-panel[is.na(nReviews), nReviews := 0] # remove this, it is already in CreateSample
-
-# part of the panel that has new reviews and estimated arrivals
-revs <- panel[!(is.na(lam)), .(t, lam, l = c(pReviews[1], diff(pReviews)), 
-                               d = c(nReviews[1], diff(nReviews)), const = 1, 
-                               zero = 0 ), by=ID]
-
-regressors <- c("disc", "young", "age")
-revs <- merge(revs, panel[!(is.na(lam)), c("ID", "t", regressors), with = F],
-              by = c("ID", "t"))
-revs[, old := age >= 365][, age := NULL]
-# NOTE: the first two regressors have to be "const" and "disc"
-regressors <- c("const", "disc", "young", "old")
-k <- length(regressors)
-
-  
-# negative of the likelihood function
-revs.lik <- function(x){
-  
-  revs[, r.plus := as.matrix(revs[, regressors, with = F]) %*% x[1:k]]
-  revs[, r.minus := as.matrix(revs[, regressors, with = F]) %*% x[(k+1):(2*k)]]
-  
-  gradient.plus <- revs[, l/r.plus - lam] %*% as.matrix(revs[, regressors, with = F])
-  gradient.minus <- revs[, d/r.minus - lam] %*% as.matrix(revs[, regressors, with = F])
-  return(list(
-    "objective" = -revs[, sum(l * log(r.plus) - r.plus*lam +  
-                             d * log(r.minus) - r.minus*lam)],
-    "gradient" = -rbind(t(gradient.plus), t(gradient.minus))
-  ))
-}
-  
-# maximize the likelihood to estimate the parameters
-library(nloptr)
-x0 <- c(c(0.25, rep(0, k-1)), c(0.25, rep(0, k-1)))
-max.lik <- nloptr(x0, 
-                  revs.lik,
-                  lb = c(0, 0, 0, -0.1, 0, 0, 0, -0.1),
-                  ub = rep(2, length(x0)),
-                  opts = list(algorithm = "NLOPT_LD_LBFGS"))
-
-theta <- max.lik$solution
-
-
-# Estimate E[score score']
-sigma.hat <- function(x){
-  n <- dim(revs)[1]
-  revs[, r.plus := as.matrix(revs[, regressors, with = F]) %*% x[1:k]]
-  revs[, r.minus := as.matrix(revs[, regressors, with = F]) %*% x[(k+1):(2*k)]]
-  
-  ans <- matrix(rep(0, 4*k^2), nrow = (2*k))
-  
-  for (i in 1:n){
-    gradient.plus <- t(revs[i, l/r.plus - lam] * as.matrix(revs[i, regressors, with = F]))
-    gradient.minus <- t(revs[i, d/r.minus - lam] * as.matrix(revs[i, regressors, with = F]))
-    score <- rbind(gradient.plus, gradient.minus)
-    ans <- ans + score %*% t(score)
-  }
-  
-  return(ans/n)
-}
-
-
-# Estimate the hessian d(score)/d theta'
-H.hat <- function(x){
-  n <- dim(revs)[1]
-  revs[, r.plus := as.matrix(revs[, regressors, with = F]) %*% x[1:k]]
-  revs[, r.minus := as.matrix(revs[, regressors, with = F]) %*% x[(k+1):(2*k)]]
-  
-  H <- matrix(rep(0, 4*k^2), nrow = (2*k))
-
-  for (i in 1:n){
-    zeros <- rep("zero", k)
-    h1 <- revs[i, c(regressors, zeros), with = F] %>% as.matrix() %>% matrix(., nrow = 1)
-    h2 <- revs[i, c(zeros, regressors), with = F] %>% as.matrix() %>% matrix(., nrow = 1)
-    dr.drho <- rbind(h1, h2)
-    dlik.dr <- revs[i, .(-l/((r.plus)^2), 0, 0, -d/((r.minus)^2))] %>%
-               as.matrix() %>% matrix(., nrow = 2)
-    H <- H + t(dr.drho) %*% dlik.dr %*% dr.drho
-  }
-  
-  return(H/n)
-}
-
-
-# calculate the variance-covariance matrix of theta hat (asymptotic divided by n)
-sigma <- sigma.hat(theta)
-H <- H.hat(theta)
-H.inv <- solve(H, diag(1, nrow = (2*k)))
-omega <- (H.inv %*% sigma %*% H.inv) / dim(revs)[1]
-
-
-# Test if the probability to leave a review goes up: 
-# a(theta) = theta[2] + theta[2+k]
-# Null: a(theta_0) = 0
-A <- rep(0, 2*k)
-A[2] <- 1
-A[2+k] <- 1
-# t stat
-(theta[2] + theta[2+k])/sqrt(t(A) %*% omega %*% A)
-
-# Test if the probability to leave a like conditional on review (score) goes up
-# with a discount
-# a(theta) = (theta[1] + theta[1+k])/(sum(theta[c(1,2,1+k,2+k)])) - theta[1]/(theta[1] + theta[1+k])
-grad.a <- function(x){
-  
-  ans <- rep(0, length(x))
-  sum.x <- sum(x[c(1,2,1+k,2+k)])
-  
-  ans[1] <- (sum.x - x[1]) / (sum.x)^2 - x[1+k]/(x[1] + x[1+k])^2
-  ans[2] <- (sum.x - x[2]) / (sum.x)^2
-  ans[1+k] <- (- x[1] - x[2]) / (sum.x)^2  + x[1]/(x[1] + x[1+k])^2
-  ans[2+k] <- (- x[1] - x[2]) / (sum.x)^2
-  
-  return(ans)
-}
-
-A <- grad.a(theta)
-
-score.dif <- (theta[1] + theta[2])/(sum(theta[c(1,2,1+k,2+k)])) - 
-             (theta[1])/(theta[1] + theta[1+k])
-
-score.dif/sqrt(t(A) %*% omega %*% A)
+```{r fig.cap='\\label{scoreDifPlot} Distribution of the difference between estimated average score on and off a discount.'}
+p1 <- ggplot(data = revs[, .(x = score.dif)]) +
+  geom_histogram(mapping = aes(x = x, y = ..density..),
+                 color = "black",
+                 position = "identity",
+                 boundary = 0,
+                 alpha = 0.9,
+                 binwidth = 0.05,
+                 fill = my.colors[1]) +
+  geom_density(mapping = aes(x = x),
+                 color = "black",
+                 position = "identity",
+                 alpha = 0.4,
+                 fill = my.colors[1]) +
+  scale_x_continuous(name = "Difference in Review Scores",
+                     minor_breaks = NULL) +
+  scale_y_continuous(name = NULL,
+                     breaks = c(0, 1, 2),
+                     minor_breaks = NULL) +
+  my.theme()
 ```
 
+Now that I have carried out the analysis of the average reviewing propensity and valence, I turn attention to heterogeneity between firm. In the identification section I showed how one can estimate the like and dislike rates on the product level. The theory of discounting close to review transitions developed in this paper suggests that products whose customers leave better reviews during a price promotions should be more likely to discount when they are close to a transition, regardless of whether it is a positive or a negative one. It is convenient to introduce notation for the difference between the expected review scores on and off a discount for the games in my sample:
 
-```{r}
-# Game by game test whether reviews during a discount are more positive 
-# (in the score sense) than those off discount
-f <- panel[!is.na(disc), .(disc, l = c(pReviews[1], diff(pReviews)), d = c(nReviews[1], diff(nReviews))), by = ID][, .(n1 = sum(l), n0 = sum(d)), keyby = c("ID", "disc")]
+\begin{equation}
+\Delta score_{i} := \frac{\rho^+_{0i} + \rho^+_{1i}}{\rho^+_{0i} + \rho^+_{1i} + \rho^-_{0i} + \rho^-_{1i}} - \frac{\rho^+_{0i}}{\rho^+_{0i} + \rho^-_{0i}} 
+\end{equation}
 
-test <- f[,  .(p.val = tryCatch(t.test(c(rep(1, n1[1]), rep(0, n0[1])),
-         c(rep(1, n1[2]), rep(0, n0[2])),
-         alternative = "less")$p.value,
-         error = function(x){-1})), by = ID]
-test[p.val ==-1, p.val := NA]
-discIDs <- test[p.val <=0.05, ID]
-panel[, scoreIsBiggerDisc := (ID %in% test[p.val <= 0.05, ID])]
+Figure \ref{scoreDifPlot} depicts the distribution of $\widehat{\Delta score_{i}}$, the estimated differences in the expected review scores on and off a discount for the games in my sample. A couple of paragraphs ago I have shown that the average difference is not statistically distinguishable from zero, and the plot complies with that finding. Estimates of $\Delta score_{i}$ vary in their precision from game to game, as games that spent less little time in the sample and/or on discounts would naturally have noisier estimates. However, the distribution appears to be well-behaved.
 
-test <- f[,  .(p.val = tryCatch(t.test(c(rep(1, n1[1]), rep(0, n0[1])),
-         c(rep(1, n1[2]), rep(0, n0[2])),
-         alternative = "greater")$p.value,
-         error = function(x){-1})), by = ID]
-test[p.val ==-1, p.val := NA]
-discIDs <- test[p.val <=0.05, ID]
-panel[, scoreIsLessDisc := (ID %in% test[p.val <= 0.05, ID])]
+
+With these estimates at hand, I can now revisit Model (\ref{potTransitionsReg}), the regression I used to establish the effect of proximity to a potential transition on the discounting probability. I modify the equation by including the interaction between the 
+treatment variables of interest (proximities to potential transitions) and $\Delta score_{i}$, leading to
+\begin{equation}\label{potTransitionsHeteroReg}
+disc_{it} = (\beta^+_0 + \Delta score_{i}\beta^+_1)T_{it}^+ +(\beta^-_0 + \Delta score_{i}\beta^-_1)T_{it}^- + \Delta score_{i} + X_{it}\beta + f_i + \tau_t + \varepsilon_{it}
+\end{equation}
+
+\noindent As $\Delta score_{i}$ does not change over time, it can not be estimated by the within-estimator, but the interaction term could still be included. My theory implies that $\beta^+_1$ and $\beta^-_1$ should be positive. I estimate (\ref{potTransitionsHeteroReg}) by OLS (without the fixed effect term $f_i$) and by the within-estimator. The results are presented in Table \ref{scoreDifTransDiscReg} (the controls are omitted for brevity). 
+
+
+```{r results = 'asis', warning = FALSE}
+# remove 1% with the highest values of rho_1+ (<=2)
+# and only keep significant coefficients
+panel <- merge(panel, revs[, .(ID, rho1=rhoPosD - rhoPosND, sdif=score.dif)])
+
+panel[, pos.treatment := (needPos <= 2*band)]
+panel[, neg.treatment := (needNeg <= 2*band)]
+
+reg1 <- plm(I(discount>0) ~ sdif*pos.treatment + sdif*neg.treatment +
+               log(needPosDays) + log(needNegDays) + poly(tWODisc, degree = 2) + log(reviews+1) + score +
+               mPositive + realPositive + vPositive + age + young + day + week,
+           data = panel[abs(score.dif) <= 0.5,],
+           model = "pooling")
+cov<-vcovHC(reg1, method="white1")
+se1 <- sqrt(diag(cov))
+
+
+
+reg3 <- plm(I(discount>0) ~ sdif*pos.treatment + sdif*neg.treatment +
+               log(needPosDays) + log(needNegDays) + poly(tWODisc, degree = 2) + log(reviews+1) + score +
+               mPositive + realPositive + vPositive + age + young + day + week,
+           data = panel[abs(score.dif) <= 0.5,],
+           model="within",
+           index = c("ID", "t"))
+cov<-vcovHC(reg3, method = "white1")
+se3 <- sqrt(diag(cov))
+
+
+star.out<-stargazer(reg1, reg3,
+                    label = "scoreDifTransDiscReg",
+                    header = FALSE,
+                    title = "Discounts Before Potential Transitions And Firm Heterogeneity",
+                    se=list(se1, se3),
+                    dep.var.labels = c("$\\mathbb{P}(Discount)$"),
+                    column.labels=c("OLS", "FE"),
+                    model.numbers = F,
+                    omit = c("tWODisc", "reviews", "noScore", "realPositive",
+                             "mPositive", "vPositive", "age", "young", "Constant",
+                             "score", "day", "week", "needPosDays", "needNegDays"),
+                    covariate.labels = c("Pos. Transition", "Neg. Transition",
+                                         "Score Difference",
+                                         "S. Diff $\\times$ Pos. Tr.",
+                                         "S. Diff $\\times$ Neg. Tr."),
+                    order = c("treatment","sdif"),
+                    omit.stat=c("f","adj.rsq","ser"),
+                    no.space=T)
 ```
 
-
-<!-- ```{r fig.cap='\\label{likeRatesPlot} Distributions of $\\rho_{1i}^+$ and $\\rho_{1i}^-$'} -->
-<!-- p1 <- ggplot(data = revs[, .(x = rhoPosD-rhoPosND)][x>=-0.5& x<=2,]) + -->
-<!--   geom_histogram(mapping = aes(x = x, y = ..density..), -->
-<!--                  color = "black", -->
-<!--                  position = "identity", -->
-<!--                  boundary = 0, -->
-<!--                  alpha = 0.9, -->
-<!--                  binwidth = 0.1, -->
-<!--                  fill = my.colors[1]) + -->
-<!--   geom_density(mapping = aes(x = x), -->
-<!--                  color = "black", -->
-<!--                  position = "identity", -->
-<!--                  alpha = 0.4, -->
-<!--                  fill = my.colors[1]) + -->
-<!--   scale_x_continuous(name = "Change in Like Rates", -->
-<!--                      minor_breaks = NULL) + -->
-<!--   scale_y_continuous(name = NULL, -->
-<!--                      breaks = c(0, 1, 2), -->
-<!--                      minor_breaks = NULL) + -->
-<!--   my.theme() + -->
-<!--   coord_cartesian(xlim = c(-0.5, 2)) -->
-
-<!-- p2 <- ggplot(data = revs[, .(x = rhoNegD-rhoNegND)][x>=-0.5& x<=2,]) + -->
-<!--   geom_histogram(mapping = aes(x = x, y = ..density..), -->
-<!--                  color = "black", -->
-<!--                  position = "identity", -->
-<!--                  boundary = 0, -->
-<!--                  binwidth = 0.025, -->
-<!--                  alpha = 0.9, -->
-<!--                  fill = my.colors[1]) + -->
-<!--   geom_density(mapping = aes(x = x), -->
-<!--                  color = "black", -->
-<!--                  position = "identity", -->
-<!--                  alpha = 0.4, -->
-<!--                  fill = my.colors[1]) + -->
-<!--   scale_x_continuous(name = "Change in Dislike Rates", -->
-<!--                      minor_breaks = NULL) + -->
-<!--   scale_y_continuous(name = NULL, -->
-<!--                      minor_breaks = NULL) + -->
-<!--   my.theme() + -->
-<!--   coord_cartesian(xlim = c(-0.5, 2)) -->
-
-<!-- ggarrange(p1, p2, nrow=1, align = "h") -->
-<!-- ``` -->
-
-<!-- ```{r like-rates, fig.width = 8, fig.height = 6, include = FALSE} -->
-<!-- ggarrange(p1, p2, nrow=2, align = "v") -->
-<!-- ``` -->
-
-<!-- The main parameters of interest in this section are $(\rho_{1i}^+, \rho_{1i}^-)$, which measure the change in the like and dislike rates during discounts. The precision with which this parameter could be estimated for game $i$ depends on the number of discount days we observe for that game. For some products it is impossible to estimate the parameter precisely, either due to their short presence in the sample, insufficient number of discounts, or both. However, out of `r info[, .N]` games in the sample, `r revs[posSignif == T, .N]` have a value of $\rho_{1i}^+$ that is statistically different from zero, and `r revs[negSignif == T, .N]` have a value of $\rho_{1i}^-$ that is statistically different from zero. The distributions of $\rho_{1i}^+$ and $\rho_{1i}^-$ all games (excluding some outliers) are plotted in Figure \ref{likeRatesPlot}. These plots reveal two patterns. The first is that there are a lot of products whose consumers leave positive and/or negative feedback with the same probability on and off a discount, as is reflected in high density of the histograms close to zero. Second, the like rates appear to be way more responsive to discounts than the dislike rates. -->
-
-<!-- These findings require some interpretation. @Li16 claims “It is by now almost accepted as a stylized fact that offering deal promotion [...] deteriorates local merchants' online reputations”, while my findings seem to suggest that discounts improve review scores. Column (2) in Table \ref{reviewLag} in the Appendix presents the results of  -->
-<!-- regressing review score on days after a discount (with controls). The results suggest that, on average, the review score goes down, not up, in the days following a discount. The total effect at best adds up to 1 point out of a 100, but, technically, my findings do not contradict the literature. Instead, I show that there is a long tail of products that receive significantly better reviews during a price promotion. The main hypothesis that I am developing in this paper is that firms use discounting to manage their online reputation. This hypothesis implies that firms that  receive better reviews during price promotions should be more likely to engage in such behavior. Thus, my goal in this section is not to study the heterogeneity in the response of the review sentiment to discounts for its own sake, but simply to identify games that my hypothesis predicts should exhibit stronger effects. However, my findings present an interesting puzzle for future investigation: how does the (average) negative response of review score to discounts coexist with the distribution of products that seem to receive better reviews during discounts, not worse. -->
-
-<!-- \textcolor{red}{Looks like consumers are more likely to leave reviews during a discount. That could be interesting. Calculate standard errors for that?} -->
-
-
-
-<!-- ## Revisiting Discounting and Transitions -->
-
-<!-- Now that I have estimated the parameters of the demand and review processes, I am ready to use them to revisit my -->
-<!-- main hypothesis. In Section \ref{descriptiveEvidence} I have established that  -->
-
-<!-- ```{r results = 'asis', warning = FALSE} -->
-<!-- # remove 1% with the highest values of rho_1+ (<=2) -->
-<!-- # and only keep significant coefficients -->
-<!-- panel <- merge(panel, revs[, .(ID, rho1 = rhoPosD - rhoPosND, score.dif)]) -->
-
-<!-- panel[, pos.treatment := (needPos <= 2*band)] -->
-<!-- panel[, neg.treatment := (needNeg <= 2*band)] -->
-
-<!-- reg1 <- plm(I(discount>0) ~ rho1*pos.treatment + rho1*neg.treatment + -->
-<!--                log(needPosDays) + log(needNegDays) + poly(tWODisc, degree = 2) + log(reviews+1) + score + -->
-<!--                mPositive + realPositive + vPositive + age + young + day + week, -->
-<!--            data = panel[rho1 <= 2 & rho1 >= -0.5,], -->
-<!--            model = "pooling") -->
-<!-- cov<-vcovHC(reg1, method="white1") -->
-<!-- se1 <- sqrt(diag(cov)) -->
-
-<!-- reg2 <- plm(I(discount>0) ~ rho1*pos.treatment + rho1*neg.treatment + -->
-<!--                log(needPosDays) + log(needNegDays) + poly(tWODisc, degree = 2) + log(reviews+1) + score + -->
-<!--                mPositive + realPositive + vPositive + age + young + day + week, -->
-<!--            data = panel[rho1 <= 2 & rho1 >= -0.5 &  -->
-<!--                         ID %in% revs[negSignif == T | posSignif == T, ID],  -->
-<!--                         ], -->
-<!--            model = "pooling") -->
-<!-- cov<-vcovHC(reg2, method="white1") -->
-<!-- se2 <- sqrt(diag(cov)) -->
-
-
-<!-- reg3 <- plm(I(discount>0) ~ rho1*pos.treatment + rho1*neg.treatment + -->
-<!--                log(needPosDays) + log(needNegDays) + poly(tWODisc, degree = 2) + log(reviews+1) + score + -->
-<!--                mPositive + realPositive + vPositive + age + young + day + week, -->
-<!--            data = panel[rho1 <= 2 & rho1 >= -0.5 -->
-<!--                         # ID %in% revs[negSignif == T | posSignif == T, ID],  -->
-<!--                         ], -->
-<!--            model="within", -->
-<!--            index = c("ID", "t")) -->
-<!-- cov<-vcovHC(reg3, method = "white1") -->
-<!-- se3 <- sqrt(diag(cov)) -->
-
-<!-- reg4 <- plm(I(discount>0) ~ rho1*pos.treatment + rho1*neg.treatment + -->
-<!--                log(needPosDays) + log(needNegDays) + poly(tWODisc, degree = 2) + log(reviews+1) + score + -->
-<!--                mPositive + realPositive + vPositive + age + young + day + week, -->
-<!--            data = panel[rho1 <= 2 & rho1 >= -0.5 &  -->
-<!--                         ID %in% revs[negSignif == T | posSignif == T, ID],  -->
-<!--                         ], -->
-<!--            model="within", -->
-<!--            index = c("ID", "t")) -->
-<!-- cov<-vcovHC(reg4, method = "white1") -->
-<!-- se4 <- sqrt(diag(cov)) -->
-
-<!-- star.out<-stargazer(reg1, reg2, reg3, reg4, -->
-<!--                     label = "rhoTransDiscReg", -->
-<!--                     header = FALSE, -->
-<!--                     title = "Discounts Before Potential Transitions And Firm Heterogeneity", -->
-<!--                     se=list(se1, se2, se3, se4), -->
-<!--                     dep.var.labels = c("$\\mathbb{P}(Discount)$"), -->
-<!--                     column.labels=c("OLS", "OLS:Signif", "FE", "FE:Signif"), -->
-<!--                     model.numbers = F, -->
-<!--                     omit = c("tWODisc", "reviews", "noScore", "realPositive",  -->
-<!--                              "mPositive", "vPositive", "age", "young", "Constant", -->
-<!--                              "score", "day", "week", "needPosDays", "needNegDays"), -->
-<!--                     covariate.labels = c("$\\rho_1^+$", -->
-<!--                                          "$\\rho_1^+ \\times$ Pos. Tr.", -->
-<!--                                          "$\\rho_1^+ \\times$ Neg. Tr.", -->
-<!--                                          "Pos. Tr.", "Neg. Tr."), -->
-<!--                     order = c("rho1"), -->
-<!--                     omit.stat=c("f","adj.rsq","ser"), -->
-<!--                     no.space=T) -->
-<!-- ``` -->
-
+The least squares estimates in column (OLS) are mainly presented to check the correlations in the data. Better sentiment of reviews left during a discount is not related to the frequency of discount on its own, but products close to a positive transition are more likely to discount if their customers are more lenient when buying during a price promotion. This effect is not present in the preferred specification (\ref{potTransitionsHeteroReg}), which is estimated in the second column. Quite interestingly, this specification finds $\beta^-_0 < 0$, while my earlier results, essentially, failed to find any effect of a proximity to a negative transition on discounting behavior. This finding makes a lot of sense. Notice that $\beta^-_0$ measures the effect of the aforementioned proximity on discounting probability conditional on $\Delta score_{i} = 0$. For a game that is close to downgrading its review score and which does not receive better reviews on a discount, initiating a price promotion is a gamble with no clear upside and a significant downside. This finding complies perfectly with the prediction of the stylized model of discounting behavior presented in section \ref{stylizedModel}.
 
 \newpage
 \appendix
