@@ -3,7 +3,7 @@
 ## Description
 This repository contains replication files for 
 
-**Sorokin, Dmitry, "Consumer Reviews and Product Discounts: Evidence From Video Games", 2020**
+**Sorokin, Dmitry, "Reaching for the Stars: Discounts and Review Tier Transitions in the Video Games Market", 2020**
 
 The **Build** folder takes processed raw data from the **Input** subfolder, uses scripts in the **Code** subfolder to create the sample for the analysis, and places the final data files to the **Output** subfolder. Intermediate files are placed to **Build**/**Temp**, and are deleted upon the termination of the code. The raw data is too big to upload on GitHub, but is available upon request.
 
