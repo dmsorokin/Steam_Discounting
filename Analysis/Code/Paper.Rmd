@@ -1077,14 +1077,14 @@ texregObjects[2] <- list(tr)
 I start off by estimating the average probabilities of leaving a good and a bad review in the population, and by using the estimates to test hypotheses formulated in (\ref{hyp1}) and (\ref{hyp2}). I use two sets of covariates to explain these probabilites. The baseline set of covariates, $w_{it} = [1, disc_{it-k}]'$, only allows the probability of a like or a dislike to change if a discount is in place. The theory behind this choice is that reviews reflect the average perception of quality by the consumers. As my sample was selected to only include products with constant quality, this perception should only change if different types of consumers are buying the product. Consumers buying on a discount are paying a lower price, and thus could be different from consumers paying the whole price. This is the selection effect of discounts on reviews. I also acknowledge the possibility that there could be a selection over time, when early buyers are very different from the late buyers. Similarly, the perception of quality might be deteriorating over time as new games, with potentially better characteristics, are coming out. For this reason, the second set of covariates also adds two variables measuring age: $w_{it} = [1, disc_{it-k}, young_{it}, old_{it}]'$, where $young_{it}$ is a dummy indicating that the game is less than 2 weeks old, and $old_{it}$ is a dummy indicating that the game is more than a year old. The estimates are presented in Table \ref{reviewEstimates}.
 
 
-```{r}
-table <- texreg(texregObjects,
-                stars = c(0.01, 0.05, 0.1),
-                digits = 3,
-                custom.model.names = c("(1)", "(2)"),
-                caption = "Estimates of the Review Parameters",
-                caption.above = T,
-                label = "reviewEstimates")
+```{r results = 'asis'}
+texreg(texregObjects,
+       stars = c(0.01, 0.05, 0.1),
+       digits = 3,
+       custom.model.names = c("(1)", "(2)"),
+       caption = "Estimates of the Review Parameters",
+       caption.above = T,
+       label = "reviewEstimates")
 ```
 
 
@@ -1144,7 +1144,7 @@ rm(Hpos, Hneg, HnegInv, HposInv)
 ```
 
 ```{r fig.cap='\\label{scoreDifPlot} Distribution of the difference between estimated average score on and off a discount.'}
-p1 <- ggplot(data = revs[, .(x = score.dif)]) +
+ggplot(data = revs[, .(x = score.dif)]) +
   geom_histogram(mapping = aes(x = x, y = ..density..),
                  color = "black",
                  position = "identity",
