@@ -308,9 +308,76 @@ plmJuliaToTex <- function(r1, r2, juliaFrame, juliaStats){
 }
 
 
+revs.lik <- function(x){
+  # negative of the likelihood function for the estimation of review probabilities
+  
+  revs[, r.plus := as.matrix(revs[, regressors, with = F]) %*% x[1:k]]
+  revs[, r.minus := as.matrix(revs[, regressors, with = F]) %*% x[(k+1):(2*k)]]
+  
+  gradient.plus <- revs[, l/r.plus - lam] %*% as.matrix(revs[, regressors, with = F])
+  gradient.minus <- revs[, d/r.minus - lam] %*% as.matrix(revs[, regressors, with = F])
+  
+  return(list(
+    "objective" = -revs[, sum(l * log(r.plus) - r.plus*lam +  
+                                d * log(r.minus) - r.minus*lam)],
+    "gradient" = -rbind(t(gradient.plus), t(gradient.minus))
+  ))
+
+}
 
 
+# Estimate E[score score'] to get standard errors of the ML estimates
+sigma.hat <- function(x){
+  n <- dim(revs)[1]
+  revs[, r.plus := as.matrix(revs[, regressors, with = F]) %*% x[1:k]]
+  revs[, r.minus := as.matrix(revs[, regressors, with = F]) %*% x[(k+1):(2*k)]]
+  
+  ans <- matrix(rep(0, 4*k^2), nrow = (2*k))
+  
+  for (i in 1:n){
+    gradient.plus <- t(revs[i, l/r.plus - lam] * as.matrix(revs[i, regressors, with = F]))
+    gradient.minus <- t(revs[i, d/r.minus - lam] * as.matrix(revs[i, regressors, with = F]))
+    score <- rbind(gradient.plus, gradient.minus)
+    ans <- ans + score %*% t(score)
+  }
+  
+  return(ans/n)
+}
 
+# Estimate the hessian d(score)/d theta' to get standard errors of the ML estimates
+H.hat <- function(x){
+  n <- dim(revs)[1]
+  revs[, r.plus := as.matrix(revs[, regressors, with = F]) %*% x[1:k]]
+  revs[, r.minus := as.matrix(revs[, regressors, with = F]) %*% x[(k+1):(2*k)]]
+  
+  H <- matrix(rep(0, 4*k^2), nrow = (2*k))
+  
+  for (i in 1:n){
+    zeros <- rep("zero", k)
+    h1 <- revs[i, c(regressors, zeros), with = F] %>% as.matrix() %>% matrix(., nrow = 1)
+    h2 <- revs[i, c(zeros, regressors), with = F] %>% as.matrix() %>% matrix(., nrow = 1)
+    dr.drho <- rbind(h1, h2)
+    dlik.dr <- revs[i, .(-l/((r.plus)^2), 0, 0, -d/((r.minus)^2))] %>%
+      as.matrix() %>% matrix(., nrow = 2)
+    H <- H + t(dr.drho) %*% dlik.dr %*% dr.drho
+  }
+  
+  return(H/n)
+}
 
+grad.a <- function(x){
+  # gradient of the nonlinear function of the parameters that I use to test
+  # the equality of the average review score off and on a discount
+  
+  ans <- rep(0, length(x))
+  sum.x <- sum(x[c(1,2,1+k,2+k)])
+  
+  ans[1] <- (sum.x - x[1]) / (sum.x)^2 - x[1+k]/(x[1] + x[1+k])^2
+  ans[2] <- (sum.x - x[2]) / (sum.x)^2
+  ans[1+k] <- (- x[1] - x[2]) / (sum.x)^2  + x[1]/(x[1] + x[1+k])^2
+  ans[2+k] <- (- x[1] - x[2]) / (sum.x)^2
+  
+  return(ans)
+}
 
 

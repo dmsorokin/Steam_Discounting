@@ -124,6 +124,8 @@ panel[, score := pReviews/reviews]
 # Steam rounds the score down
 panel[, score:=floor(100*score)]
 panel[is.na(reviews), reviews := 0]
+panel[is.na(pReviews), pReviews := 0]
+panel[is.na(nReviews), nReviews := 0]
 panel[reviews < 10, score := NA]
 
 # define review labels
