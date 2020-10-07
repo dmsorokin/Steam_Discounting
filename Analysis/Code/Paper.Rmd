@@ -1,7 +1,7 @@
 ---
  title: |
-   | Consumer Reviews and Product Discounts:
-   | Evidence From Video Games
+   | Reaching for The Stars: Discounts and Review Tier 
+   | Transitions in the Video Games Market
    
  author: "Dmitry Sorokin"
  date: "`r format(Sys.time(), '%B %d, %Y')`"
@@ -741,16 +741,6 @@ panel[nRevRate > 0, needNegDays:=needNeg/nRevRate]
 panel[, pos.treatment := (needPos <= 2*band)]
 panel[, neg.treatment := (needNeg <= 2*band)]
 
-reg3 <- plm(I(discount>0) ~ pos.treatment + neg.treatment +
-              log(needPosDays) + log(needNegDays) +
-              poly(tWODisc, degree = 2) + log(reviews+1) + score +
-              mPositive + age + young + day + week,
-                 data=panel[],
-            model="within",
-            index = c("ID", "t"))
-cov<-vcovHC(reg3, method="white1")
-se3 <- sqrt(diag(cov))
-
 
 R.low <- 0.7
 R.high <- 0.8
@@ -773,7 +763,6 @@ panel[score < R.high*100 & vPositive == T,
       needNeg := floor(abs((R.low*reviews-pReviews)/(1-R.low)))+1]
 
 panel[(pReviews - needNeg)/(reviews-needNeg) == R.low & needNeg > 0,  needNeg := needNeg + 1]
-
 
 panel[, needPosDays:=needPos/pRevRate]
 panel[nRevRate > 0, needNegDays:=needNeg/nRevRate]
@@ -801,14 +790,18 @@ reg2 <- plm(I(discount>0) ~ pos.treatment + neg.treatment +
 cov<-vcovHC(reg2, method="white1")
 se2 <- sqrt(diag(cov))
 
-star.out <- stargazer(reg1, reg2, reg3,
+panel[, pos.treatment := (needPos <= 2*band)]
+panel[, neg.treatment := (needNeg <= 2*band)]
+
+
+star.out <- stargazer(reg1, reg2,
              label = "potentialTransitionsResults",
              table.placement = "hp",
              header = FALSE,
              title = "Discounts Close to Potential Transitions",
-             se=list(se1, se2, se3),
+             se=list(se1, se2),
              dep.var.labels = c("Discount Probability"),
-             column.labels = c("Full", "1 W. to Tr.", "Simple Tr."),
+             column.labels = c("Full", "1 W. to Tr."),
              covariate.labels = c("Close to Pos. Transition", "Close to Neg. Transition",
                                   "Log Days to Pos. Tr.", "Log Days to Neg Tr.",
                                   "Log Reviews", "Score", "Mostly Positive",
@@ -830,35 +823,32 @@ disc_{it} = \beta^+ T_{it}^+ + \beta^- T_{it}^- + X_{it}\beta + f_i + \tau_t + \
 
 ```{r results = 'asis'}
 cat(star_insert_row(star.out,
-                    c("Time Effects: Weekdays, Week &  $\\checkmark$ &  $\\checkmark$ & $\\checkmark$ \\\\",
-                      "Game Effects & $\\checkmark$ & $\\checkmark$ & $\\checkmark$ \\\\",
-                      "Poly($t$ W/O Discount, $d=2$) & $\\checkmark$ & $\\checkmark$ & $\\checkmark$ \\\\"),
+                    c("Time Effects: Weekdays, Week &  $\\checkmark$ &  $\\checkmark$\\\\",
+                      "Game Effects & $\\checkmark$ & $\\checkmark$  \\\\",
+                      "Poly($t$ W/O Discount, $d=2$) & $\\checkmark$ & $\\checkmark$\\\\"),
                     insert.after = c(35,35,35)))
 ```
 
 
 Notice that the inclusion of both the distance to a potential positive and a potential negative transition in the regression forces me to drop all observations from the lowest ("Negative") and the highest ("Overwhelmingly Positive") review bins, as for games in those bins only one direction of review transition is possible. However, given that the proportion of such observations in the sample is quite small, this is not a big concern. The analysis also excludes the observations with a “No Review Score” label, as I do not want to take a stance on what constitutes an improvement or a deterioration of the review score for such games. My demand estimates presented in Table \ref{demandEstimates} suggest that having no reviews could be the worst review bin a game could be in, but then I would again have to exclude this label as one that does not admit review deterioration. In any case, games that spend a lot of time in “No Score” have, by construction, very few reviews, which makes them rather unlikely to ever be one one or two weeks away from a transition according to my measure. 
 
-The results of estimating Equation \ref{potTransitionsReg} are presented in Table \ref{potentialTransitionsResults}. The first column is the full specification that uses all observations in the sample (except the omissions just mentioned). The second column uses a more stringent definition of proximity to a transition, requiring a game to be `r band`, rather than `r 2*band`, days away from a potential transition to be counted as being “close to a transition”. The third column uses only transitions between “Mixed”, “Mostly Positive”, and “Positive” labels, as these are the transitions that rely on the review score only, while “Very Positive” and “Overwhelmingly Positive” require both a certain review score, and a certain number of reviews.\footnote{Technically, a game improving its review score from 79\% to 80\% can transition to both “Positive” and “Very Positive”, so the results in the third column bundle together these types of transitions.}. @SorokinStevens20 exclusively uses these simple review bins in their regression discontinuity analysis, precisely in order to avoid the complications that arise from double thresholds required for “Very Positive” and “Overwhelmingly Positive”.
+The results of estimating Equation \ref{potTransitionsReg} are presented in Table \ref{potentialTransitionsResults}. The first column is the full specification that uses all observations in the sample (except the omissions just mentioned). The second column uses a more stringent definition of proximity to a transition, requiring a game to be `r band`, rather than `r 2*band`, days away from a potential transition to be counted as being “close to a transition”. The results in Table \ref{potentialTransitionsResults} unequivocally support the hypothesis that proximity to a review bin upgrade increases firms' willingness to run a price promotion. Measured against the `r round(panel[, mean((discount > 0), na.rm=T)]*100)`% probability for a random game-day pair from the sample to feature a discount\footnote{The corresponding number for the games in the positive treatment group is `r round(100*panel[ID %in% panel[pos.treatment == 1, unique(ID)], mean((discount > 0), na.rm = T)])`.}, the effects constitute a `r round(100*(reg2$coefficients[1]/panel[, mean((discount > 0), na.rm=T)]))`-`r round(100*(reg1$coefficients[1]/panel[, mean((discount > 0), na.rm=T)]))`% increase in the daily probability of a discount. Proximity to a potential negative transition seems to have a negative effect on the probability of discount, albeit the effect is not very strong. I find that firms under a risk of deteriorating their review label are `r -round(100*(reg1$coefficients[2]/panel[, mean((discount > 0), na.rm=T)]))`% less likely to go on a discount.
 
-The results in Table \ref{potentialTransitionsResults} unequivocally support the hypothesis that proximity to a review bin upgrade increases firms' willingness to run a price promotion. Measured against the `r round(panel[, mean((discount > 0), na.rm=T)]*100)`% probability for a random game-day pair from the sample to feature a discount\footnote{The corresponding number for the games in the positive treatment group is `r round(100*panel[ID %in% panel[pos.treatment == 1, unique(ID)], mean((discount > 0), na.rm = T)])`.}, the effects constitute a `r round(100*(reg2$coefficients[1]/panel[, mean((discount > 0), na.rm=T)]))`-`r round(100*(reg3$coefficients[1]/panel[, mean((discount > 0), na.rm=T)]))`% increase in the daily probability of a discount. Proximity to a potential negative transition seems to have a negative or no effect on the probability of discount. The results in the main specification suggest that firms under a risk of deteriorating their review label are `r -round(100*(reg1$coefficients[2]/panel[, mean((discount > 0), na.rm=T)]))`% less likely to go on a discount, albeit the effect is not significant in the other two specifications.
-
-It is instructive to look at the results through the lens of stylized model introduced earlier in the section. Both the variance and the positive selection effects could explain why products close to a review upgrade are more likely to run a price promotion. The lack of significance of the effect for products close to a review slump could be explained by the clash of the variance effect and the selection effect. As we see, even though my empirical investigation has resolved the theoretical ambiguity of the signs and the significance of the effects, it did not shed much light on the balance of the underlying forces behind these effects. I proceed to investigating the two effects in greater detail now.
+It is instructive to look at the results through the lens of the stylized model introduced earlier in the section. Both the variance and the positive selection effects could explain why products close to a review upgrade are more likely to run a price promotion. Weak significance of the effect for products close to a review slump could be explained by the clash between the variance effect and the selection effect. As we see, even though my empirical investigation has resolved the theoretical ambiguity of the signs and the significance of the effects, it did not shed much light on the balance of the underlying forces behind these effects. I proceed to investigating the two effects in greater detail now.
 
 
-# Discounts and Reviewing Behavior
+# Selection and Variance Effects
 
-In the previous section I established two key facts. First, I found that firms are more likely to go on a discount when their products are close to upgrading their review bin. Second, I did not find any change in the discounting behavior for products that are close to downgrading their review bins. The first finding implies that the selection effect and the variance effect can not be both negative for games close to a review upgrade. This is a weak finding, as it does not reveal if the selection effect is negative or positive. The second finding suggests that the selection effect should be positive, as it is balanced by the variance effect that we expect to be negative for the games in question. Alternatively, the variance effect is not strong either. In this section I investigate the signs of the selection and variance effects directly.
+In the previous section I established two key facts. First, I found that firms are more likely to go on a discount when their products are close to upgrading their review bin. Second, I found only limited change in the discounting behavior for products that are close to downgrading their review bins. The first finding implies that the selection effect and the variance effect can not be both negative for games close to a review upgrade. This is a weak finding, as finding the opposite would be really surprising. Moreover, it does not reveal if the selection effect is negative or positive. The second finding suggests that the variance effect should be at least somewhat important. Given that the variance and the selection effect could go in different directions for the products close to the negative transition, the separate contributions of the two effects also remain unclear. In this section I investigate the signs of the selection and variance effects directly.
 
-The selection effect is easy to test directly. For example, we can compare the fractions of positive and negative reviews left on and off a discount. The variance effect is harder to strip down to a similar test. I will show that there in my data there is no evidence of the positive selection effect...
+The selection effect is easy to test directly. We would simply need to compare the fractions of positive and negative reviews left on and off a discount. The variance effect is harder to strip down to a similar test. First, if one is willing to take my stylized model seriously, then the absence of the selection effect in the data would indicate that all the effects are driven by the variance effect. This idea could be further developed. Even if the selection effect is not zero, if we could quantify it, then “controlling” for the magnitude of the selection effect could shed light on the importance of the variance effect. Another way to evaluate the importance of the variance effect is to look at the extent to which a discount speeds up the arrival of reviews. For the variance effect to be relevant, a discount should be able to bring a significant number of new reviews.
 
-To formulate and test these hypotheses, I complement my model of demand and gaming on Steam introduced in Section \ref{demandSection} by a model of reviewing behavior. A formal model of reviewing behavior is necessary for several reasons. First, a structural model allows me to explicitly introduce the parameters of interest--probabilities of leaving a good or a bad reviews on and off a discount. Second, more importantly, the model will allow me to use my estimates of the demand process to make statements about the absolute change in probability of leaving a review that is due to the discount. One does not need a model to check if more reviews are left during a price promotion--a simple comparison of means would do. However, since sales are unobserved, it is impossible to say if the new reviews are entirely due to the influx of new customers, or part of it could be explained by an increased willingness to leave a review during a discount. I use my model to estimate sales, and therefore I can make inference on the propensity to leave a review. Note that most studies studying reviewing behavior do not observe anything close to daily sales, and thus could not possibly have identified the effects I am interested here. 
+I implement these ideas as follows. I complement my model of demand and gaming on Steam introduced in Section \ref{demandSection} with a model of reviewing behavior. A formal model of reviewing behavior is necessary for several reasons. First, a structural model allows me to explicitly introduce the parameters of interest--probabilities of leaving a good or a bad reviews on and off a discount. With the estimates of these parameters I will be  able to directly assess the importance of the selection effect. Having developed a measure of the valence of the reviews left during a discount, I will be able to control for the selection effect in the regression of discounting behavior on proximities to transition (\ref{potTransitionsReg}). Second, the model will allow me to use my estimates of the demand process to make statements about the absolute change in probability of leaving a review that is due to the discount. Since sales are unobserved, it is impossible to say if the surge in reviews during a discount is entirely due to the influx of new customers, or if part of it could be explained by an increased willingness to leave a review during a discount. I use my model to estimate sales, and therefore I can make inference on the propensity to leave a review.  Such inference can not be made without a model of demand and review activity or sales data, neither of which are common in the literature. 
 
-As a preview of results, I do find that customers are significantly more likely to review a product if they purchase it during a price promotion, albeit the valence of the reviews is unaffected, on average. In other words, I provide evidence that, in my data, the negative selection effect of lower prices on the type of customers leaving reviews that has been documented in the literature does not outweigh the direct effect of lower prices on their satisfaction and their review decision. I then proceed to allow firms in my sample to be heterogeneous in the probabilities of receiving positive and negative reviews on and off discount. I check if firms whose customers are particularly likely to leave a like during a discount are more likely to discount, and I find some support for this hypothesis.
+In my data I find no evidence of positive selection effect. Table \ref{reviewLag} in the Appendix shows that, following a discount, the review score goes down by half a point (out of 100), and does not recover in the week following the discount. With my estimates from the structural model I fail to reject the hypothesis that the selection effect is negative. When I control for the size of the selection effect at a game level, I find that the negative effect of the proximity to a negative transition on discounting increases substantially, and becomes more significant. This serves as evidence of the importance of the variance effect. Speaking of the effect of a discount on the review arrival,  Table \ref{reviewLag} shows that a discount is followed by around 7 extra reviews, on average, in the week after its introduction, or at least doubles the speed of review arrival. My structural estimates show that consumers are significantly more likely to leave reviews during discounts, further highlighting the role of the variance effect.
 
 
 ## Review Model
-
 
 Every buyer of game $i$ is a potential reviewer. I assume that a buyer who buys the game at $t-k$ leaves a positive (negative) review for the game on day $t$ with probability \(r_{it}^+\)	 (\(r_{it}^-\)), and no review otherwise. For the reasons I will explain later, I will refer to  $r_{it}^+$ as the *like rate*, and to $r_{it}^-$ as the *dislike rate*.  The focus of the analysis is on the difference between the reviews left on and off a discount. To that end, I parametrize the like and dislike rates to depend on the discounting behavior of the firm and other covariates as  as follows.
 
@@ -867,25 +857,25 @@ The like rate is a linear function of covariates $w_{it} = [1, disc_{it-k}, \ldo
 $r_{it}^+ = w_{it}'\rho_i^+$.  The dislike rate is a linear function of covariates: $r_{it}^- = w_{it}'\rho_i^-$.
 \end{assumption}
 
-In the simplest specification I use $w_{it} = [1, disc_{it-k}]'$, $\forall i: \rho_i^+ = \rho^+$,  implying $r_{it}^+ = \rho^+_0 + disc_{it}\rho^+_1$, which simply says that buyers of all games leave a positive reviews with one of the two possible probabilities: $\rho^+_0$ off a discount, and $\rho^+_0 + \rho^+_1$ on a discount. Similarly, a probability of a negative review could be either $\rho^-_0$, or $\rho^-_0 + \rho^-_1$. While the model with no heterogeneity in parameters is not very realistic (for one, it implies that all games have the same expected review score), I treat the estimates that will come out of it as estimates of average parameter values: $\rho^+ \approx \bar{\rho}_i^+$, $\rho^- \approx \bar{\rho}_i^-$. Thus, a model without heterogeneity offers a simple way to do inference on the average values of parameters in the population of games. 
+In the simplest specification I use $w_{it} = [1, disc_{it-k}]'$,  $\rho_i^+ = \rho^+$ for all $i$,  implying $r_{it}^+ = \rho^+_0 + disc_{it}\rho^+_1$. This simply says that buyers of all games leave a positive reviews with one of the two possible probabilities: $\rho^+_0$ off a discount, and $\rho^+_0 + \rho^+_1$ on a discount. Similarly, a probability of a negative review could be either $\rho^-_0$, or $\rho^-_0 + \rho^-_1$. While the model with no heterogeneity in parameters is not very realistic (for one, it implies that all games have the same expected review score), I treat the estimates that will come out of it as estimates of average parameter values: $\rho^+ \approx \bar{\rho}_i^+$, $\rho^- \approx \bar{\rho}_i^-$. Thus, a model without heterogeneity offers a simple way to do inference on the average values of parameters in the population of games. 
 
-In the introduction to this section I outlined two hypotheses I want to test. First, I want to know if consumers are more likely to leave a review if they buy on a discount. This amounts to testing $\rho^+_0 + \rho^+_1 + \rho^-_0 + \rho^-_1 > \rho^+_0 + \rho^-_0$, or
+In the introduction I implicitly defined two hypotheses I want to test. First, I want to know if consumers are more likely to leave a review if they buy on a discount. This amounts to testing $\rho^+_0 + \rho^+_1 + \rho^-_0 + \rho^-_1 > \rho^+_0 + \rho^-_0$, or
 \begin{align}\label{hyp1}
 H_0: &  \rho^+_1 + \rho^-_1 \le 0 \\
 H_1: &  \rho^+_1 + \rho^-_1 > 0
 \end{align}
 
-The second hypothesis I am interested in involves the sentiment of the reviews left on and off a discount. Product's review score measures the fraction of positive reviews among all reviews left, reflecting the probability to get a good review conditional on having a review. Indeed, if $L_t \in \{0, 1\}$ is a random variable that takes the value of 1 if the $i$-th review is a like, then the review score based on $T$ reviews would simply be $Score(T) = \frac 1 T \sum_{t=1}^T L_t$, which converges to $\EE{L_t} = \PP{L_t = 1}$ as $T$ grows to infinity. For a user buying a game off a discount we have
+The second hypothesis I am interested in is whether the selection effect is positive or not. Product's review score measures the fraction of positive reviews among all reviews left, reflecting the probability to get a good review conditional on having a review. Indeed, if $L_t \in \{0, 1\}$ is a random variable that takes the value of 1 if the $i$-th review is a like, then the review score based on $T$ reviews would simply be $Score(T) = \frac 1 T \sum_{t=1}^T L_t$, which converges to $\EE{L_t} = \PP{L_t = 1}$ as $T$ grows to infinity. For a user buying a game off a discount we have
 \begin{equation}
-\PP{L_t = 1} = \CP{"Like"}{"Review"} = \frac{\rho^+_{0}}{\rho^+_{0} + \rho^-_{0}}
+\PP{L_t = 1} = \CP{\text{“Like”}}{\text{“Review”}} = \frac{\rho^+_{0}}{\rho^+_{0} + \rho^-_{0}}
 \end{equation}
 
 \noindent For a user buying the same game on a discount we have
 \begin{equation}
-\PP{L_t = 1} = \CP{"Like"}{"Review"} = \frac{\rho^+_{0} + \rho^+_{1}}{\rho^+_{0} + \rho^+_{1} + \rho^-_{0} + \rho^-_{1}}
+\PP{L_t = 1} = \CP{\text{“Like”}}{\text{“Review”}} = \frac{\rho^+_{0} + \rho^+_{1}}{\rho^+_{0} + \rho^+_{1} + \rho^-_{0} + \rho^-_{1}}
 \end{equation}
 
-\noindent The second hypothesis can now be formulated as follows: the expected review score on a discount is not higher than the expected review score off a discount. Formally, we have
+\noindent I can then test the sign of the selection effect by testing the following hypothesis: the expected review score on a discount is not higher than the expected review score off a discount. Formally, we have
 \begin{align}\label{hyp2}
 H_0: &  \frac{\rho^+_{0} + \rho^+_{1}}{\rho^+_{0} + \rho^+_{1} + \rho^-_{0} + \rho^-_{1}} - \frac{\rho^+_{0}}{\rho^+_{0} + \rho^-_{0}} \le 0 \\
 H_1: & \frac{\rho^+_{0} + \rho^+_{1}}{\rho^+_{0} + \rho^+_{1} + \rho^-_{0} + \rho^-_{1}} - \frac{\rho^+_{0}}{\rho^+_{0} + \rho^-_{0}} > 0
@@ -895,27 +885,27 @@ H_1: & \frac{\rho^+_{0} + \rho^+_{1}}{\rho^+_{0} + \rho^+_{1} + \rho^-_{0} + \rh
 
 ## Identification
 
-To make my identificaiton argument I will focus on the case of just two regressors, $w_{it} = [1, disc_{it-k}]$, and heterogeneous parameters $\rho_i^+$, $\rho_i^-$. From this analysis it will become clear how I am able to identify $\rho$'s on a game-by-game basis, and how more regressors could be accommodated. Intuitively, the propensity to leave a review on and off a discount (the like and dislike rates $r_{it}^+$, $r_{it}^-$) are identified by the differences in reviews left on and off a discount. In fact, this intuition becomes a rigorous proof, as will be shown shortly. The proof will also highlight the importance of having estimated the arrival rates of consumers.
+To make my identification argument I will focus on the case of two regressors, $w_{it} = [1, disc_{it-k}]$, and heterogeneous parameters $\rho_i^+$, $\rho_i^-$. From this analysis it will become clear how I am able to identify $\rho_i$'s on a game-by-game basis, and how more regressors could be accommodated. Intuitively, the propensity to leave a review on and off a discount (the like and dislike rates $r_{it}^+$, $r_{it}^-$) are identified by the differences in reviews left on and off a discount. In fact, this intuition becomes a rigorous proof, as will be shown shortly. The proof will also highlight the importance of having estimated the arrival rates of consumers.
 
-Following assumption \ref{arrivalAssumptions}, the arrival of buyers for game $i$ on day $t$ follows a Poisson distribution with arrival rate $\lambda_{it} = \lambda_i (1 + x_{it}'\beta)$. I also assumed that, $k$ days later, each consumer leaves a  positive review with probability $r_{it}^+$, a negative review with probability $r_{it}^-$, and no review otherwise. Then, the following proposition is true:
+Following assumption \ref{arrivalAssumptions}, the arrival of buyers for game $i$ on day $t$ follows a Poisson distribution with arrival rate $\lambda_{it} = \lambda_i (1 + x_{it}'\beta)$. I assumed that, $k$ days after the purchase is made, each consumer leaves a  positive review with probability $r_{it}^+$, a negative review with probability $r_{it}^-$, and no review otherwise. Then, the following proposition is true:
 \begin{proposition}\label{poissonReviews}
 The number of good reviews $G_{it}$ for game $i$ on day $t$ is distributed Poisson with rate $r_{it}^+\lambda_{it-k}$. The number of bad reviews $B_{it}$ for game $i$ on day $t$ is distributed Poisson with rate $r_{it}^-\lambda_{it-k}$. Moreover, $G_{it}$ and $B_{it}$ are independent.
 \end{proposition}
 
-Proposition \ref{poissonReviews} allows one to easily write down the likelihood for positive and negative reviews separately. I will use the positive reviews as the leading example here, but all the findings automatically translate to the negative reviews case as well. For every game I observe the history of the review arrivals $\{(g_{it}, b_{it})\}_{t=1}^{T_i}$. Since $\PP{G_{it} = g_{it}} = \frac{ (r_{it}^+\lambda_{it-k} )^{g_{it}} }{g_{it}!} e^{ -r_{it-k}^+\lambda_{it-k} }$, the log-likelihood of the history of likes is given by
+Proposition \ref{poissonReviews} allows one to easily write down the likelihood for positive and negative reviews separately. I will use the positive reviews as the leading example here, but all the findings automatically translate to the case of negative reviews as well. For every game I observe the history of the review arrivals $\{(g_{it}, b_{it})\}_{t=1}^{T_i}$. Since $\PP{G_{it} = g_{it}} = \frac{ (r_{it}^+\lambda_{it-k} )^{g_{it}} }{g_{it}!} e^{ -r_{it-k}^+\lambda_{it-k} }$, the log-likelihood of the history of likes is given by
 \begin{equation}\label{reviewsLikelihood}
 \ell(g_i; r_{it}^+, \lambda_{it-k}) = \sum_{t\ge k} g_{it} \log r_{it}^+\lambda_{it-k} - r_{it}^+\lambda_{it-k} - \log g_{it}!
 \end{equation}
 
-For simplicity, I treat $\lambda_{it} = \lambda_i (1 + x_{it}'\beta)$ as known, rather than aknowledging the fact that I only have estimates $\hat{\lambda}_{it} = \hat \lambda_i (1 + x_{it}'\hat \beta)$. By the virtue of observing the majority of the games for many periods, the estimates of $\lambda_i$ should be relatively precise; estimates of $\beta$ were estimated using all the observations in the sample, and should be relatively precise as well. For now I also take the lag $k$ between the time when the user buys the game and leaves a review for the game to be known. The parameters of interest are $(\rho_{0i}^+, \rho_{1i}^+)$, which parametrize the like rate as $r_{it}^+ = \rho_{0i}^+ + \rho_{1i}^+ disc_{it-k}$. The likelihood is concave in the parameters, so the parameters are identified as the maximizer of the likelihood. Restricting attention to a binary discount variable $disc_{it}$ allows me to derive a closed-form estimator for $(\rho_{0i}^+, \rho_{1i}^+)$, which is convenient and illustrates the source of identification better. During a discount the like rate of game $i$ is $\rho_{0i}^+ + \rho_{1i}^+$, which is consistently estimated as
+For simplicity, I treat $\lambda_{it} = \lambda_i (1 + x_{it}'\beta)$ as known, rather than acknowledging the fact that I only have estimates $\hat{\lambda}_{it} = \hat \lambda_i (1 + x_{it}'\hat \beta)$. By the virtue of observing the majority of the games for many periods, the estimates of $\lambda_i$ should be relatively precise; estimates of $\beta$ were estimated using all the observations in the sample, and should be relatively precise as well. For now I also take the lag $k$ between the time when the user buys the game and leaves a review for the game to be known. The parameters of interest are $(\rho_{0i}^+, \rho_{1i}^+)$, which parametrize the like rate as $r_{it}^+ = \rho_{0i}^+ + \rho_{1i}^+ disc_{it-k}$. The likelihood is concave in the parameters, so the parameters are identified as the maximizer of the likelihood. Restricting attention to a binary discount variable $disc_{it}$ allows me to derive a closed-form estimator for $(\rho_{0i}^+, \rho_{1i}^+)$, which is convenient and illustrates the source of identification better. During a discount the like rate of game $i$ is $\rho_{0i}^+ + \rho_{1i}^+$, which is consistently estimated as
 \begin{equation}\label{rhohat1}
 \hat \rho_{0i}^+ + \hat\rho_{1i}^+ = \frac{\sum_{t \ge k} disc_{it-k}g_{it}}{\sum_{t\ge k} disc_{it-k}\lambda_{it-k}},
 \end{equation}
-As we can see, the ML-estimator of the like rate during a price promotion is just the ratio of the number of good reviews left on a discount over the expected arrival on that day. Similarly, the like rate off a discount can be estimated by
+As we can see, the ML-estimator of the like rate during a price promotion is just the ratio of the number of good reviews left on a discount over the expected sales on that day. Similarly, the like rate off a discount can be estimated by
 \begin{equation}\label{rhohat2}
 \hat \rho_{0i}^+ = \frac{\sum_{t\ge k} (1-disc_{it-k})g_{it}}{\sum_{t\ge k} (1-disc_{it-k})\lambda_{it-k}},
 \end{equation}
-with the interpretation that the like rate in the absence of a discount is just a ratio of the reviews left outside of a discount and the expected number of customers outside a discount. Notice that identification of these parameters requires the knowledge of the demand parameters $\lambda_{it}$, highlighting the point I made earlier: seeing more good reviews arriving on a discount is not sufficient to conclude whether customers are more likely to leave positive reviews when purchasing during a discount. One need to know how many more customers are buying because of the aforementioned discount. 
+with the interpretation that the like rate in the absence of a discount is just a ratio of the reviews left outside of a discount and the expected number of customers outside a discount. Notice that identification of these parameters requires the knowledge of the demand parameters $\lambda_{it}$, highlighting the point I made earlier: seeing more good reviews arriving on a discount is not sufficient to conclude whether customers are more likely to leave positive reviews when purchasing during a discount. One needs to know how many more customers are buying because of the aforementioned discount. 
 
 My second hypothesis, formulated in (\ref{hyp2}), involves the sentiment of the reviews left on and off a price promotion. Intuitively, one should be able to detect a change in the valence of reviews during a price promotion by simply comparing the ratios of good to bad reviews on and off a discount. In particular, the answer should not depend on any information on the absolute sales. Indeed, if we plug  in the estimators from (\ref{rhohat1})-(\ref{rhohat2}) into the expression for the expected review score off a discount from (\ref{hyp2}), we can see that our inference here will not depend on the estimates of the demand parameters in $\lambda_{it}$:
 \begin{equation}\label{avReviewScore}
@@ -925,7 +915,7 @@ My second hypothesis, formulated in (\ref{hyp2}), involves the sentiment of the 
 \end{equation}
 The estimator of the review score off a discount simply calculates the average of the positive reviews left off a discount among all the reviews left off a discount, confirming our intuition.
 
-The analysis above is complicated by two facts. First, for each game I observe the exact review count, but my demand estimates only apply to rush hours. For a sake of example, assume that every buyer leaves a review. Suppose also that every day there are two new buyers who play in the morning, and three new buyers who play in the evening, who abandone the game after just one day. My data would register 3 players leaving 5 reviews on a daily basis. This is the reason why I refer to the values of $(r_{it}^+, r_{it}^-)$ as rates, rather than probabilities (which they are in the model). Proposition \ref{poissonReviews}, stating that the number of good reviews on day $t$ for game $i$ is a Poisson random variable with rate $r_{it}^+\lambda_{it-k}$, could be treated as an assumption, rather than a result. In that case, nothing constrains the $r_{it}^+$ parameter to be less than 1, and the identification argument goes through in exactly the same way.
+The analysis above is complicated by two facts. First, for each game I observe all reviews ever left, but I only have information on a fraction of buyers, as my measure of the number of buyers is based on the peak-time data only. To see what the problem is, consider the following example. Assume that every buyer of the game leaves a review. Suppose also that every day there are two new buyers who play in the morning, and three new buyers who play in the evening. Both types abandon the game after just one day of playing. In such a world my data would register 3 players leaving 5 reviews on a daily basis, implying that one user leaves more than one review. This is the reason why I refer to the values of $(r_{it}^+, r_{it}^-)$ as rates, rather than probabilities (which they are in the model). Proposition \ref{poissonReviews}, stating that the number of good reviews on day $t$ for game $i$ is a Poisson random variable with rate $r_{it}^+\lambda_{it-k}$, could be treated as an assumption, rather than a result. In that case, nothing constrains the $r_{it}^+$ parameter to be less than 1, and the identification argument goes through in exactly the same way.
 
 Another problem stems from the fact that the purchase date behind a review is not available to the researcher. For that reason, the model features an additional parameter $k$, the lag between purchasing the game and leaving a review, that I assumed to be known. To estimate this parameter I leverage the fact that spikes in player activity on the first day of a sale represent new users, and study the review response during the following week in order to uncover the modal lag for leaving a review (see Table \ref{reviewLag} in the Appendix). This number turns out to be one day. Even though time to posting a review has a non-degenerate distribution, modeling it in a more nuanced way would significantly contribute to complexity: the likelihood of receiving a positive review on day 100 would depend on the entire history of buyer arrivals prior to that date. Therefore, I proceed using $\hat k = 1$.
 
@@ -939,7 +929,7 @@ Another problem stems from the fact that the purchase date behind a review is no
 # more reviews during discounts
 
 # preparation for formatting the estimates in a table
-texregObjects <- list()
+table <- list()
 gofnames <- c("Observations")
 
 
@@ -998,13 +988,13 @@ t2.1 <- score.dif/sqrt(t(A) %*% omega1 %*% A)
 # Append to the output table
 pvalues <- 2*(1-pnorm(theta1/sqrt(diag(omega1))))
 tr <- createTexreg(coef = theta1,
-                   coef.names = c("Prob. of Like", "Discount on Like", 
-                                  "Prob. of Dislike", "Discount on Dislike"),
+                   coef.names = c("Constant (Like)", "Discount (Like)",
+                                  "Constant (Dislike)", "Discount (Dislike)"),
                    se = sqrt(diag(omega1)),
                    pvalues = pvalues,
                    gof.names = gofnames,
                    gof = c(dim(revs)[1]))
-texregObjects[1] <- list(tr)
+table[1] <- list(tr)
 
 
 # ~ SECOND SPECIFICATION
@@ -1057,33 +1047,44 @@ t2.2 <- score.dif/sqrt(t(A) %*% omega2 %*% A)
 # Append to the output table
 pvalues <- 2*(1-pnorm(theta2/sqrt(diag(omega2))))
 tr <- createTexreg(coef = theta2,
-                   coef.names = c("Prob. of Like", "Discount on Like", 
-                                  "Young on Like", "Old on Like", 
-                                  "Prob. of Dislike", "Discount on Dislike",
-                                  "Young on Dislike", "Old on Dislike"),
+                   coef.names = c("Constant (Like)", "Discount (Like)", 
+                                  "Young (Like)", "Old (Like)", 
+                                  "Constant (Dislike)", "Discount (Dislike)",
+                                  "Young (Dislike)", "Old (Dislike)"),
                    se = sqrt(diag(omega2)),
                    pvalues = pvalues,
                    gof.names = gofnames,
                    gof = c(dim(revs)[1]))
-texregObjects[2] <- list(tr)
+table[2] <- list(tr)
 ```
-I start off by estimating the average probabilities of leaving a good and a bad review in the population, and by using the estimates to test hypotheses formulated in (\ref{hyp1}) and (\ref{hyp2}). I use two sets of covariates to explain these probabilites. The baseline set of covariates, $w_{it} = [1, disc_{it-k}]'$, only allows the probability of a like or a dislike to change if a discount is in place. The theory behind this choice is that reviews reflect the average perception of quality by the consumers. As my sample was selected to only include products with constant quality, this perception should only change if different types of consumers are buying the product. Consumers buying on a discount are paying a lower price, and thus could be different from consumers paying the whole price. This is the selection effect of discounts on reviews. I also acknowledge the possibility that there could be a selection over time, when early buyers are very different from the late buyers. Similarly, the perception of quality might be deteriorating over time as new games, with potentially better characteristics, are coming out. For this reason, the second set of covariates also adds two variables measuring age: $w_{it} = [1, disc_{it-k}, young_{it}, old_{it}]'$, where $young_{it}$ is a dummy indicating that the game is less than 2 weeks old, and $old_{it}$ is a dummy indicating that the game is more than a year old. The estimates are presented in Table \ref{reviewEstimates}.
+
+I start off by estimating the average probabilities of leaving a good and a bad review in the population, and by using the estimates to test hypotheses formulated in (\ref{hyp1}) and (\ref{hyp2}). I use two sets of covariates to explain these probabilites. The baseline set of covariates, $w_{it} = [1, disc_{it-k}]'$, only allows the probability of a like or a dislike to change if a discount is in place. The theory behind this choice is that reviews reflect the average perception of quality by the consumers. As my sample was selected to only include products with constant quality, this perception should only change if different types of consumers are buying the product. Consumers buying on a discount are paying a lower price, and thus could be different from consumers paying the whole price. This is the selection effect of discounts on reviews. I also acknowledge the possibility that there could be a selection over time, when early buyers are very different from late buyers. Similarly, the perception of quality might be deteriorating over time as new games, with potentially better characteristics, are coming out. For this reason, the second set of covariates also adds two variables measuring age: $w_{it} = [1, disc_{it-k}, young_{it}, old_{it}]'$, where $young_{it}$ is a dummy indicating that the game is less than 2 weeks old, and $old_{it}$ is a dummy indicating that the game is more than a year old. The estimates are presented in Table \ref{reviewEstimates}.
 
 
 ```{r results = 'asis'}
-texreg(texregObjects,
+table <- texreg(table,
        stars = c(0.01, 0.05, 0.1),
        digits = 3,
        custom.model.names = c("(1)", "(2)"),
-       caption = "Estimates of the Review Parameters",
+       caption = "Estimates of the Review Rates",
        caption.above = T,
        label = "reviewEstimates")
+
+gof.location <- str_locate(table, c("Observations"))[1]
+table.bottom <- str_sub(table, gof.location, str_length(table))
+table.top <- str_sub(table, 1, gof.location - 1)
+table.bottom <- str_replace_all(table.bottom, ".000", "")
+table <- paste(table.top, table.bottom, sep = "")
+class(table) <- c("character", "texregTable")
+table
 ```
 
 
 Given the constraints on my data, it is hard to tell if the estimates that I obtain over- or underestimate the true probabilities of leaving a review. On the one hand, I can only estimate sales for a fraction of players, and thus the probability to leave a review could be severely overestimated. On the other hand, my model assumes that a user can only leave a review on the next day after she purchases the product, so my estimates do not reflect the possibility that a user can leave a review at a later date. This, potentially, can underestimate the probability with which consumers leave reviews, especially during a discount\footnote{Reviews arriving more than one day after the discount is over will not be counted towards reviews left during discount}. Thus, my estimates are better suited for making relative statements about the probabilities of interest. 
 
-Setting aside the aforementioned issues, my results suggest that a typical user on Steam leaves a positive review with a probability around `r round(theta1[1]*100)`%, and leaves a negative review with a probability around `r theta1[3]*100`%. Discounts appear to increase both probabilities, implying that users seem to be more likely to leave a review during a discount. I formally test this hypothesis, stated in (\ref{hyp1}), and I strongly reject the null that users are less likely to leave reviews when buying on a discount in favor of the alternative that they are more likely to leave reviews when buying on a discount (the values of the $t$-stats are `r round(t1.1[1],2)` and `r round(t1.2[1],2)` in the two specifications). My second hypothesis, stated in (\ref{hyp2}), is that reviews are less positive during a discount than they are outside the discount. I fail to reject the null in favor of the alternative that reviews left during a price promotion are more positive (the $p$-values are `r round(1-pnorm(t2.1[1]),2)` and `r round(1-pnorm(t2.2[1]),2)`). As we can see, there is no disagreement across specifications on both hypotheses, giving me confidence that this result is robust. As for the age controls,  I find that users are more likely to leave reviews in the first two weeks, but, somewhat surprisingly, do not lose steam as the game becomes older. Both findings are in accordance with the patterns or reviewing dynamics depicted in Figure \ref{reviewDescriptivePlots}.
+Setting aside the aforementioned issues, my results suggest that a typical user on Steam leaves a positive review with a probability around `r round(theta1[1]*100, 1)`%, and leaves a negative review with a probability around `r round(theta1[3]*100, 1)`%. Discounts appear to increase both probabilities, implying that users seem to be more likely to leave a review during a discount. I formally test this hypothesis, stated in (\ref{hyp1}), and I strongly reject the null that users are less likely to leave reviews when buying on a discount in favor of the alternative that they are more likely to leave reviews when buying on a discount (the values of the $t$-stats are `r round(t1.1[1],2)` and `r round(t1.2[1],2)` in the two specifications). The estimated change in the probability of leaving a review due to a discount is between `r round((theta2[2]+theta2[4])/(theta2[1]+theta2[3])*100)`% and `r round((theta1[2]+theta1[4])/(theta1[1]+theta1[3])*100)`%, where the smaller estimate is probably more reliable, as it takes into account the effects of age on discounting. These results indirectly confirm that the variance effect could be playing a big role in the discounting decision of firms on Steam, as discounts are really effective at bringing new reviews.
+
+My second hypothesis, stated in (\ref{hyp2}), is that reviews are less positive during a discount than they are outside of a discount. I fail to reject the null in favor of the alternative that reviews left during a price promotion are more positive (the $p$-values are `r round(1-pnorm(t2.1[1]),2)` and `r round(1-pnorm(t2.2[1]),2)`). As we can see, there is no disagreement across specifications on both hypotheses, giving me confidence that this result is robust. This is also in accord with the results from the regression of the score on the lags of discounts and controls, presented in Table \ref{reviewLag}, which finds a small negative effect of discounts on the review score. Together these findings suggest that the selection effect of discounts is not big, and can not be the decisive force driving the discounting behavior close to review transitions. 
 
 
 
@@ -1153,27 +1154,25 @@ ggplot(data = revs[, .(x = score.dif)]) +
   scale_x_continuous(name = "Difference in Review Scores",
                      minor_breaks = NULL) +
   scale_y_continuous(name = NULL,
-                     breaks = c(0, 1, 2),
                      minor_breaks = NULL) +
   my.theme()
 ```
 
-Now that I have carried out the analysis of the average reviewing propensity and valence, I turn attention to heterogeneity between firm. In the identification section I showed how one can estimate the like and dislike rates on the product level. The theory of discounting close to review transitions developed in this paper suggests that products whose customers leave better reviews during a price promotions should be more likely to discount when they are close to a transition, regardless of whether it is a positive or a negative one. It is convenient to introduce notation for the difference between the expected review scores on and off a discount for the games in my sample:
+To strengthen this point, I use the difference in the valence of reviews on and off a discount to measure the selection effect at the game level. With such estimates at hand, I can revisit my regression of discounts on proximities to transitions (\ref{potTransitionsReg}) controlling for the selection effect. In the identification section I showed how one can estimate the like and dislike rates on the product level. Using these estimates, the selection effect can be measures as the difference between the expected review scores on and off a discount:
 
 \begin{equation}
 \Delta score_{i} := \frac{\rho^+_{0i} + \rho^+_{1i}}{\rho^+_{0i} + \rho^+_{1i} + \rho^-_{0i} + \rho^-_{1i}} - \frac{\rho^+_{0i}}{\rho^+_{0i} + \rho^-_{0i}} 
 \end{equation}
 
-Figure \ref{scoreDifPlot} depicts the distribution of $\widehat{\Delta score_{i}}$, the estimated differences in the expected review scores on and off a discount for the games in my sample. A couple of paragraphs ago I have shown that the average difference is not statistically distinguishable from zero, and the plot complies with that finding. Estimates of $\Delta score_{i}$ vary in their precision from game to game, as games that spent less little time in the sample and/or on discounts would naturally have noisier estimates. However, the distribution appears to be well-behaved.
+Figure \ref{scoreDifPlot} depicts the distribution of $\widehat{\Delta score_{i}}$, the sample counterpart of this measure. In line with the hypothesis test of the sign of the selection effect in the sample, the histogram is centered around zero. Estimates of $\Delta score_{i}$ vary in their precision from game to game, as games that spent less little time in the sample and/or on discounts would naturally have noisier estimates. However, the distribution appears to be well-behaved.
 
 
-With these estimates at hand, I can now revisit Model (\ref{potTransitionsReg}), the regression I used to establish the effect of proximity to a potential transition on the discounting probability. I modify the equation by including the interaction between the 
-treatment variables of interest (proximities to potential transitions) and $\Delta score_{i}$, leading to
+I  use these estimates to modify (\ref{potTransitionsReg})  by including the interaction between the treatment variables of interest (proximities to potential transitions) and $\Delta score_{i}$, leading to
 \begin{equation}\label{potTransitionsHeteroReg}
-disc_{it} = (\beta^+_0 + \Delta score_{i}\beta^+_1)T_{it}^+ +(\beta^-_0 + \Delta score_{i}\beta^-_1)T_{it}^- + \Delta score_{i} + X_{it}\beta + f_i + \tau_t + \varepsilon_{it}
+disc_{it} = (\beta^+_0 + \Delta score_{i}\beta^+_1)T_{it}^+ +(\beta^-_0 + \Delta score_{i}\beta^-_1)T_{it}^- +  X_{it}\beta + \Delta score_{i} + f_i + \tau_t + \varepsilon_{it}
 \end{equation}
 
-\noindent As $\Delta score_{i}$ does not change over time, it can not be estimated by the within-estimator, but the interaction term could still be included. My theory implies that $\beta^+_1$ and $\beta^-_1$ should be positive. I estimate (\ref{potTransitionsHeteroReg}) by OLS (without the fixed effect term $f_i$) and by the within-estimator. The results are presented in Table \ref{scoreDifTransDiscReg} (the controls are omitted for brevity). 
+\noindent As $\Delta score_{i}$ does not change over time, its effect on discounting probability can not be estimated by the within-estimator, but the interaction term could still be included. Notice that $\beta^+_0$ and $\beta^-_0$ measure the effect of proximity to a transition on discounting probability if $\Delta score_{i} = 0$, i.e. \emph{if there is no selection effect}. The signs and significance of these coefficients offers another test of the importance of the variance effect. In the absence of the selection effect, a moderate amount of variance is good for a game close to a review upgrade, and is bad for a game close to a review downgrade. Thus, we expect to find $\beta^+_0 >0$ and $\beta^-_0 < 0$. The remaining coefficients $\beta^+_1$ and $\beta^-_1$ measure how the selection effect changes the probability of running a price promotion close to a transition. Selection effect is good for the firms, and the prediction of my stylized model is $\beta^+_1 > 0$ and $\beta^-_1 > 0$.
 
 
 ```{r results = 'asis', warning = FALSE}
@@ -1224,7 +1223,7 @@ star.out<-stargazer(reg1, reg3,
                     no.space=T)
 ```
 
-The least squares estimates in column (OLS) are mainly presented to check the correlations in the data. Better sentiment of reviews left during a discount is not related to the frequency of discount on its own, but products close to a positive transition are more likely to discount if their customers are more lenient when buying during a price promotion. This effect is not present in the preferred specification (\ref{potTransitionsHeteroReg}), which is estimated in the second column. Quite interestingly, this specification finds $\beta^-_0 < 0$, while my earlier results, essentially, failed to find any effect of a proximity to a negative transition on discounting behavior. This finding makes a lot of sense. Notice that $\beta^-_0$ measures the effect of the aforementioned proximity on discounting probability conditional on $\Delta score_{i} = 0$. For a game that is close to downgrading its review score and which does not receive better reviews on a discount, initiating a price promotion is a gamble with no clear upside and a significant downside. This finding complies perfectly with the prediction of the stylized model of discounting behavior presented in section \ref{stylizedModel}.
+I estimate (\ref{potTransitionsHeteroReg}) by OLS (without the fixed effect term $f_i$) and by the within-estimator. The results are presented in Table \ref{scoreDifTransDiscReg} (the controls are omitted for brevity). The least squares estimates in column (OLS) are mainly presented to check the correlations in the data. Games that tend to receive better reviews on discounts discount more. However, the selection effect is not significant in both specifications. Crucially, in the preferred specification (FE) I find that $\beta^-_0 < 0$, and $\beta^+_0 > 0$. Once the variation in the selection effect is controlled for, I obtain the coefficients measuring the impact of the variance effect on discounting decisions, and the signs align with the theory. Their sizes are also quite economically meaningful, suggesting that, in the absence of the selection effect, games close to a positive transition are \textcolor{red}{number}% more likely to go on a discount, and games close to a negative transition are \textcolor{red}{number}% less likely to go on a discount.
 
 \newpage
 \appendix
