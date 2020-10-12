@@ -2,6 +2,7 @@
  title: |
    | Reaching for The Stars: Discounts and Review Tier 
    | Transitions in the Video Games Market
+   | \href{https://github.com/dmsorokin/PaperRepository/blob/gh-pages/Sorokin_JMP_2020.pdf}{\large Click for the Latest Version}
    
  author: "Dmitry Sorokin"
  date: "`r format(Sys.time(), '%B %d, %Y')`"
@@ -26,6 +27,27 @@
     fig_height: 2.5
     fig_width: 6
     number_sections: true
+    
+ abstract: |
+  \\singlespacing I document that firms in online marketplaces use price promotions 
+  to facilitate transitions to better review tiers (similar to the number of stars on
+  Amazon.com). I find that firms close to going one tier up are 4-9% more 
+  likely to discount. I theorize that two effects could be at play. The selection effect 
+  arises because customers who buy during a discount could be different from the regular 
+  ones, and could potentially leave more positive reviews. The variance effect reflects 
+  the idea that positive reviews could help the firm move up a review tier, while 
+  negative reviews would keep the tier unchanged, minimizing the downside risk 
+  of giving a discount. To test my hypotheses, I estimate a simple structural 
+  model of demand and reviewing behavior, and develop a new approach to estimating demand 
+  from data on product usage. I do not find evidence that the selection effect is 
+  positive. I find evidence of the importance of the variance effect: when 
+  the selection effect is zero, firms close to downgrading their review tier are 6% 
+  less likely to give a discount, consistent with preferring less variance. I also 
+  find that consumers are significantly more likely to leave a review when purchasing 
+  during a discount. Additional findings include estimates of the causal effect of 
+  reviews on sales and equilibrium discount elasticities in an important market 
+  not previously studied.
+  
 
  bibliography: reviewsBib.bib
  fontsize: 12pt
@@ -71,6 +93,7 @@ load(here("Analysis", "Input", "panel.Rda"))
 merge(panel[, .(ID, t)], panel, by = c("ID", "t"))
 ```
 
+
 # Introduction
 
 In his book “Economics for the Common Good” Jean Tirole proclaims the economy we live in to be governed by “Economics of Attention” [-@Tirole17, p.379]. A simple search for wine glasses on Amazon.com results in more than 5,000 options, leading to a choice problem that is virtually impossible to solve satisfactory without guidance. Such guidance is now routinly provided by different types of recommendation systems. Many marketplaces or third party websites allow consumers to review products and services that they purchased, and then aggregate these reviews into a rating, greatly facilitating the comparison between alternatives. These ratings are often given a simple graphical representation; for example, a number of stars between 0 and 5 is a common way to split the alternatives into *review tiers*. Such review tiers are used to review household items (Amazon), movies (IMDb), restaurants (Yelp), doctors (RateMDs), and many other products and services. Both an extensive literature in marketing, and anecdotal evidence from these markets, suggest that good reviews important, if not crucial, for the success of the business. Not surprisingly, firms assume an active approach to managing their reviews. Firms solicit reviews from their clients, publicly respond to reviews, and even leave fake reviews for themselves or their competitors.
@@ -79,8 +102,7 @@ In this paper I study a novel form of review management. I show that firms can u
 
 To quantify all these effects, I analyze data from Steam, a major marketplace for computer video games. I build and estimate a simple structural model of demand and reviewing behavior on Steam. The demand part of the model lays the groundwork for my analysis. I confirm the importance of better review tiers for sales on Steam, finding a premium of as high as 10% of being in the best bin, and a penalty of up to 13% for not having reviews, compared to a mediocre review tier. My estimates also highlight how impactful discounts are in this market, with an average discount being accompanied by a 25% spike in sales. Thus, firms on Steam have both the ability to use discounts to attract new users, and the incentives to upgrade their review tiers, given the differential contribution of various tiers on sales. I further document that these incentives translate into action. I find that products that are close to upgrading their review tier are 4-9% more likely to be on a discount, and I find some evidence that proximity to a downward transition decreases the probability to be on a discount by up to 4%. 
 
-My structural model provides further insight into the relative contributions of the variance and the selection effects to the observed behavior. I estimate the effect of discounts on the probabilities to leave positive and negative reviews. I find no evidence that the selection effect is positive on Steam, meaning that, on average, reviews left during a price promotion are not more favorable than the ones left outside of a price promotion. Thus, I attribute firms' behavior to the variance effect. While this effect is harder to test directly, I provide some  indirect tests of its impact on the discounting behavior around review tier transitions. I estimate the size of the selection effect at the product level, and “control” for it in my regressions of discounts on proximities to transition. I find that, in the absence of the selection effect, products that are close to a review downgrade are significantly less likely to discount, which is consistent with the idea that the variance effect is negative for such products. I also provide novel evidence that consumers who buy the product during a price promotion are more likely to leave a review, which speaks to the mechanism through which “variance” is created by a discount. 
-
+My structural model provides further insight into the relative contributions of the variance and the selection effects to the observed behavior. I estimate the effect of discounts on the probabilities to leave positive and negative reviews. I find no evidence that the selection effect is positive on Steam, meaning that, on average, reviews left during a price promotion are not more favorable than the ones left outside of a price promotion. Thus, I attribute firms' behavior to the variance effect. While this effect is harder to test directly, I provide some  indirect tests of its impact on the discounting behavior around review tier transitions. I estimate the size of the selection effect at the product level, and “control” for it in my regressions of discounts on proximities to transition. I find that, in the absence of the selection effect, products that are close to a review downgrade are 6% less likely to discount, which is consistent with the idea that the variance effect is negative for such products. I also provide novel evidence that consumers who buy the product during a price promotion are more likely to leave a review, which speaks to the mechanism through which “variance” is created by a discount. 
 
 While some of my findings are new and interesting on their own, others are best measured against the literatures in economics and marketing that I contribute to. The oldest of these is the literature investigating the impact of online consumer reviews on sales. An extensive review of the studies focusing on this topic and their meta-analysis is provided, for example, by @Floyd14. In a seminal contribution to this literature, @ChevalierMayzlin06 uses a difference-in-differences approach, exploiting the differences in reviews for the same books across Amazon.com and Barnesandnoble.com, to argue that better reviews causally improve sales. A similar approach applied to the same market was recently used by @ReimersWaldfogel20, who reaffirm the importance of reviews for sales of books and quantify the welfare implications of the informational content of consumer reviews. @ZhuZhang10 exploit differences between two different video games consoles rather than websites, and find that review ratings matter only for less popular games. 
 
@@ -1178,7 +1200,6 @@ I estimate (\ref{potTransitionsHeteroReg}) by OLS (without the fixed effect term
 
 
 # Conclusion
-\label{conclusion}
 
 In this paper I document a novel mechanism through which firms use pricing to manage their online reviews. Using data from Steam, a major digital marketplace for computer video games, I show that firms discount their products in order to facilitate transitions between review tiers. Products that are close to upgrading their review tier are 4-9% more likely to be on a discount, while products close to deteriorating their review tier are up to 4% less likely to discount, albeit this effect is less significant. 
 

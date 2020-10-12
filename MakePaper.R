@@ -18,6 +18,6 @@ createLink(here("Analysis", "Output", "reviewsBib.bib"),
 # the final PDF, or choose "html_document", but some latex commands won't work
 # properly
 
-rmarkdown::render(here("Analysis", "Code", "Paper.Rmd"),
+rmarkdown::render(here("Analysis", "Code", "Sorokin_JMP_2020.Rmd"),
                   output_dir = here("Analysis", "Output"),
                   output_format = "pdf_document")

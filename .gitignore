@@ -21,5 +21,6 @@ Analysis/Output/Paper_files/figure-latex/*.pdf
 # Misc
 **/Slides
 Analysis/Output/**
+!Sorokin_JMP_2020.pdf
 
 
