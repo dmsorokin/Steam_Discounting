@@ -5,7 +5,7 @@
   | \href{http://papers.dsorokin.net/Sorokin_JMP_2020.pdf}{\large [Click for the Latest Version]}
    
  author: |
-  Dmitry Sorokin\thanks{\protect\linespread{1}\protect\selectfont New York University, dsorokin@nyu.edu. I am deeply grateful to Timothy Christensen, Alessandro Lizzeri, and Lu\'{i}s Cabral for their support and guidance. I benefited enormously from my conversations with Ryan Stevens, Jimena Galindo, Sam Kapon, Dmitry Sedov, Jonathan Elliott, and Timur Abbiasov. I would also like to thank Chris Conlon, Christopher Flinn, Elena Manresa, Maher Said, Mikkel Plagborg-M\o{}ller, Milena Almagro, Paula Onuchic, Sharon Traiberman, and all other great people at NYU for their helpful comments. All mistakes are my own.}
+  Dmitry Sorokin\thanks{\protect\linespread{1}\protect\selectfont New York University, dsorokin@nyu.edu. I am deeply grateful to Timothy Christensen, Alessandro Lizzeri, and Lu\'{i}s Cabral for their support and guidance. I benefited enormously from my conversations with Ryan Stevens, Jimena Galindo, Sam Kapon, Dmitry Sedov, Jonathan Elliott, and Timur Abbiasov. I would also like to thank Chris Conlon, Christopher Flinn, Elena Manresa, Maher Said, Mikkel Plagborg-M\o{}ller, Milena Almagro, Paula Onuchic, Sharon Traiberman, Stefan Bucher, and all other great people at NYU for their helpful comments. All mistakes are my own.}
   
  date: "`r format(Sys.time(), '%B %Y')`"
  classoption: pagebackref # passes pagebackref=true to hyperref before it is loaded, allowing backreferencing
