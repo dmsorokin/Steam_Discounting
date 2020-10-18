@@ -1171,9 +1171,9 @@ star.out<-stargazer(reg1, reg3,
                              "mPositive", "vPositive", "age", "young", "Constant",
                              "score", "day", "week", "needPosDays", "needNegDays"),
                     covariate.labels = c("Pos. Transition", "Neg. Transition",
-                                         "Score Difference",
                                          "S. Diff $\\times$ Pos. Tr.",
-                                         "S. Diff $\\times$ Neg. Tr."),
+                                         "S. Diff $\\times$ Neg. Tr.",
+                                         "Score Difference"),
                     order = c("treatment","sdif"),
                     omit.stat=c("f","adj.rsq","ser"),
                     no.space=T)
@@ -1358,8 +1358,8 @@ panel[, discNewLag6:=NULL][, discNewLag7:=NULL][, new.reviews:=NULL]
 ```
 
 ```{r results = 'asis'}
-cat(star_insert_row(star.out, c("Weekdays + Week Effects & $\\checkmark$  & $\\checkmark$  \\\\",
-                                "Game Effects & $\\checkmark$  & $\\checkmark$ \\\\"), 
+cat(star_insert_row(star.out, c("Weekdays + Week Effects & $\\checkmark$  & $\\checkmark$ & $\\checkmark$  \\\\",
+                                "Game Effects & $\\checkmark$  & $\\checkmark$ & $\\checkmark$ \\\\"), 
                     insert.after = c(28,28)))
 ```
 \newpage
